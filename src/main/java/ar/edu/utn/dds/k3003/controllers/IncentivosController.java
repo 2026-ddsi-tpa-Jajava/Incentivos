@@ -1,8 +1,5 @@
 package ar.edu.utn.dds.k3003.controllers;
 
-import ar.edu.utn.dds.k3003.Fachada;
-import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +8,10 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
+import ar.edu.utn.dds.k3003.Fachada;
+import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
+import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
+
 @RestController
 public class IncentivosController {
 
@@ -18,6 +19,11 @@ public class IncentivosController {
 
     public IncentivosController(Fachada fachada) {
         this.fachada = fachada;
+    }
+
+    @GetMapping("/")
+    public ResponseEntity<String> home() {
+        return ResponseEntity.ok("Servicio de Incentivos activo. Usa /insignias o /misiones.");
     }
 
     @PostMapping("/insignias")
