@@ -1,150 +1,210 @@
 package ar.edu.utn.dds.k3003;
 
-import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.*;
+import java.time.LocalDate;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
+import java.util.stream.Collectors;
+
+import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
+import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
+import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
+import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
+import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaIncentivos;
+import ar.edu.utn.dds.k3003.dominio.Donador;
+import ar.edu.utn.dds.k3003.dominio.Insignia;
+import ar.edu.utn.dds.k3003.dominio.Mision;
+import ar.edu.utn.dds.k3003.dominio.MisionCompletitud;
+import ar.edu.utn.dds.k3003.dominio.MisionDonacionesExitosas;
 import ar.edu.utn.dds.k3003.exceptions.DonadorNoEncontradoException;
-import ar.edu.utn.dds.k3003.exceptions.DonadorYaExistenteException;
-import ar.edu.utn.dds.k3003.repositories.DonadoresRepository;
-import ar.edu.utn.dds.k3003.repositories.DonadoresYEntidadesDataMapper;
-import ar.edu.utn.dds.k3003.repositories.InMemoryDonadoresRepo;
-import java.util.List;
-import java.util.NoSuchElementException;
-import lombok.val;
-import org.springframework.stereotype.Service;
+import ar.edu.utn.dds.k3003.exceptions.EntidadNoEncontradaException;
+import ar.edu.utn.dds.k3003.repositories.DonadorRepo;
+import ar.edu.utn.dds.k3003.repositories.InsigniaRepo;
+import ar.edu.utn.dds.k3003.repositories.MisionRepo;
 
-@Service
-public class Fachada implements FachadaDonadoresYEntidades {
+public class Fachada implements FachadaIncentivos {
 
-  private DonadoresRepository donadoresRepository;
-  private DonadoresYEntidadesDataMapper donadoresYEntidadesDataMapper =
-      new DonadoresYEntidadesDataMapper();
+    private final DonadorRepo donadorRepo;
+    private final MisionRepo misionRepo;
+    private final InsigniaRepo insigniaRepo;
+    private final AtomicLong insigniaSeq = new AtomicLong(1);
+    private final AtomicLong misionSeq = new AtomicLong(1);
 
-  public Fachada() {
-    /*
-    Para que se ejecuten correctamente los tests, se necesita tener un constructor vacio
-    Es decir, que no reciba parametros.
-    Si necesitan un constructor con parametros
-    Java permite tener varios constructores conviviendo sin conflictos.
-    */
+    private FachadaDonaciones fachadaDonaciones;
+    private FachadaDonadoresYEntidades fachadaDonadoresYEntidades;
 
-    this.donadoresRepository = new InMemoryDonadoresRepo();
-  }
-
-  @Override
-  public DonadorDTO agregarDonador(DonadorDTO donadorDTO) {
-    if (this.donadoresRepository.findById(donadorDTO.id()).isPresent()) {
-      throw new DonadorYaExistenteException("Ya existe un donador con ese ID");
+    public Fachada() {
+        this.donadorRepo = new DonadorRepo();
+        this.misionRepo = new MisionRepo();
+        this.insigniaRepo = new InsigniaRepo();
     }
 
-    val donador = donadoresYEntidadesDataMapper.toDonador(donadorDTO);
-
-    val donadorGuardado = this.donadoresRepository.save(donador);
-
-    return donadoresYEntidadesDataMapper.toDonadorDTO(donadorGuardado);
-  }
-
-  @Override
-  public DonadorDTO buscarDonadorPorID(String donadorID) throws NoSuchElementException {
-    val donadorOptional = this.donadoresRepository.findById(donadorID);
-
-    if (donadorOptional.isEmpty()) {
-      throw new DonadorNoEncontradoException("No existe un donador con ese ID");
-    }
-    val donadorFinal = donadorOptional.get();
-
-    return donadoresYEntidadesDataMapper.toDonadorDTO(donadorFinal);
-  }
-
-  @Override
-  public DonadorDTO modificarEstado(String donadorID, EstadoDonadorEnum estado)
-      throws NoSuchElementException {
-
-    val donadorOptional = this.donadoresRepository.findById(donadorID);
-
-    if (donadorOptional.isEmpty()) {
-      throw new DonadorNoEncontradoException("No existe un donador con ese ID");
+    @Override
+    public void setFachadaDonaciones(FachadaDonaciones fachadaDonaciones) {
+        this.fachadaDonaciones = fachadaDonaciones;
     }
 
-    val donadorFinal = donadorOptional.get();
-    donadorFinal.setEstado(estado);
-
-    this.donadoresRepository.deleteById(donadorID);
-    this.donadoresRepository.save(donadorFinal);
-
-    return donadoresYEntidadesDataMapper.toDonadorDTO(donadorFinal);
-  }
-
-  @Override
-  public DonadorDTO modifcarCategoria(String donadorID, String categoria)
-      throws NoSuchElementException {
-    val donadorOptional = this.donadoresRepository.findById(donadorID);
-    if (donadorOptional.isEmpty()) {
-      throw new DonadorNoEncontradoException("No existe un donador con ese ID");
+    @Override
+    public void setFachadaDonadoresYEntidades(FachadaDonadoresYEntidades fachadaDonadoresYEntidades) {
+        this.fachadaDonadoresYEntidades = fachadaDonadoresYEntidades;
     }
-    val donadorFinal = donadorOptional.get();
-    donadorFinal.setCategoria(categoria);
 
-    this.donadoresRepository.deleteById(donadorID);
-    this.donadoresRepository.save(donadorFinal);
+    @Override
+    public InsigniaDTO agregarInsignia(InsigniaDTO insigniaDTO) {
+        if (insigniaDTO == null || insigniaDTO.id() != null) {
+            throw new IllegalArgumentException("La insignia es invalida");
+        }
 
-    return donadoresYEntidadesDataMapper.toDonadorDTO(donadorFinal);
-  }
+        String id = "ins-" + insigniaSeq.getAndIncrement();
+        Insignia insignia = new Insignia(id, insigniaDTO.nombre(), insigniaDTO.descripcion());
+        insigniaRepo.guardar(insignia);
+        return toInsigniaDTO(insignia);
+    }
 
-  @Override
-  public void setFachadaIncentivos(FachadaIncentivos fachadaIncentivos) {}
+    @Override
+    public MisionDTO agregarMision(MisionDTO misionDTO) {
+        if (misionDTO == null || misionDTO.id() != null) {
+            throw new IllegalArgumentException("La mision es invalida");
+        }
 
-  @Override
-  public Boolean puedeDonar(String donadorID) throws NoSuchElementException {
-    // A implementar por el alumno
-    return null;
-  }
+        String id = "mis-" + misionSeq.getAndIncrement();
+        Mision mision;
 
-  @Override
-  public List<NecesidadMaterialDTO> obtenerNecesidadesInsatisfechasDe(String productoSolicitadoID) {
-    // A implementar por el alumno
-    return List.of();
-  }
+        if (CategoriaDonadorEnum.COLABORADOR.equals(misionDTO.categoriaFin())) {
+            mision = new MisionCompletitud(id, misionDTO.insigniaID());
+        } else {
+            mision = new MisionDonacionesExitosas(id, misionDTO.insigniaID());
+        }
 
-  @Override
-  public List<QuejaDTO> obtenerQuejasDe(String donadorID) throws NoSuchElementException {
-    // A implementar por el alumno
-    return List.of();
-  }
+        if (misionDTO.nombre() != null) {
+            mision.setNombre(misionDTO.nombre());
+        }
 
-  @Override
-  public NecesidadMaterialDTO satisfacerNecesidad(String necesidadID, Integer cantidad)
-      throws NoSuchElementException {
-    // A implementar por el alumno
-    return null;
-  }
+        misionRepo.guardar(mision);
+        return toMisionDTO(mision);
+    }
 
-  @Override
-  public DonadorStatsDTO estadisticasDonador(String donadorID) {
-    return null;
-  }
+    @Override
+    public void asignarInsigniaADonador(String donadorID, InsigniaDTO insigniaDTO) {
+        verificarExistenciaExterna(donadorID);
 
-  @Override
-  public EntidadBeneficaDTO agregarEntidad(EntidadBeneficaDTO entidadBeneficaDTO) {
-    // A implementar por el alumno
-    return null;
-  }
+        if (insigniaDTO == null || insigniaDTO.id() == null) {
+            throw new IllegalArgumentException("La insignia es invalida");
+        }
 
-  @Override
-  public EntidadBeneficaDTO buscarEntidadPorID(String entidadID) throws NoSuchElementException {
-    // A implementar por el alumno
-    return null;
-  }
+        Donador donador = obtenerOCrearDonador(donadorID);
+        Insignia insignia = insigniaRepo.buscar(insigniaDTO.id());
+        donador.agregarInsignia(insignia);
+    }
 
-  @Override
-  public NecesidadMaterialDTO registrarNecesidad(NecesidadMaterialDTO necesidadMaterialDTO) {
-    // A implementar por el alumno
-    return null;
-  }
+    @Override
+    public void asignarMisionADonador(String donadorID, MisionDTO misionDTO) {
+        verificarExistenciaExterna(donadorID);
 
-  @Override
-  public QuejaDTO agregarQueja(QuejaDTO quejaDTO) throws NoSuchElementException {
-    // A implementar por el alumno
-    return null;
-  }
+        if (misionDTO == null || misionDTO.id() == null) {
+            throw new IllegalArgumentException("La mision es invalida");
+        }
+
+        Donador donador = obtenerOCrearDonador(donadorID);
+        Mision mision = misionRepo.buscar(misionDTO.id());
+        donador.setMisionActual(mision);
+    }
+
+    @Override
+    public List<InsigniaDTO> getInsigniasDeDonador(String donadorID) {
+        if (!donadorRepo.existe(donadorID)) {
+            verificarExistenciaExterna(donadorID);
+        }
+        Donador donador = donadorRepo.buscar(donadorID);
+        return donador.getInsignias().stream()
+            .map(this::toInsigniaDTO)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public MisionDTO getMisionEnCursoDeDonador(String donadorID) {
+        if (!donadorRepo.existe(donadorID)) {
+            verificarExistenciaExterna(donadorID);
+        }
+        Donador donador = donadorRepo.buscar(donadorID);
+        if (donador.getMisionActual() == null) {
+            return null;
+        }
+        return toMisionDTO(donador.getMisionActual());
+    }
+
+    @Override
+    public void procesarDonador(String donadorID) {
+        verificarExistenciaExterna(donadorID);
+
+        Donador donador = obtenerOCrearDonador(donadorID);
+        Mision misionActual = donador.getMisionActual();
+
+        if (misionActual == null || fachadaDonaciones == null) {
+            return;
+        }
+
+        List<DonacionDTO> donaciones = fachadaDonaciones
+            .buscarPorDonadorYFechaInicio(donadorID, LocalDate.of(2000, 1, 1));
+
+        List<String> datosEvaluacion = extraerDatosParaMision(misionActual, donaciones);
+
+        if (misionActual.estaCumplida(datosEvaluacion)) {
+            try {
+                Insignia insignia = insigniaRepo.buscar(misionActual.getInsigniaID());
+                donador.agregarInsignia(insignia);
+            } catch (EntidadNoEncontradaException e) {
+                // Ignora insignia faltante en repo local.
+            }
+
+            CategoriaDonadorEnum nuevaCategoria = misionActual.getCategoriaFin();
+            Mision siguienteMision = buscarMisionParaCategoria(nuevaCategoria);
+            donador.avanzarCategoria(nuevaCategoria, siguienteMision);
+        }
+    }
+
+    private void verificarExistenciaExterna(String donadorID) {
+        try {
+            fachadaDonadoresYEntidades.buscarDonadorPorID(donadorID);
+        } catch (RuntimeException e) {
+            throw new DonadorNoEncontradoException(donadorID);
+        }
+    }
+
+    private Donador obtenerOCrearDonador(String donadorID) {
+        if (!donadorRepo.existe(donadorID)) {
+            donadorRepo.guardar(new Donador(donadorID));
+        }
+        return donadorRepo.buscar(donadorID);
+    }
+
+    private List<String> extraerDatosParaMision(Mision mision, List<DonacionDTO> donaciones) {
+        if (mision instanceof MisionCompletitud) {
+            return donaciones.stream().map(DonacionDTO::productoID).collect(Collectors.toList());
+        }
+
+        return donaciones.stream().map(d -> d.estado().name()).collect(Collectors.toList());
+    }
+
+    private Mision buscarMisionParaCategoria(CategoriaDonadorEnum categoria) {
+        return misionRepo.todas().stream()
+            .filter(m -> m.getCategoriaInicio().equals(categoria))
+            .findFirst()
+            .orElse(null);
+    }
+
+    private InsigniaDTO toInsigniaDTO(Insignia insignia) {
+        return new InsigniaDTO(insignia.getInsigniaID(), insignia.getNombre(), insignia.getDescripcion());
+    }
+
+    private MisionDTO toMisionDTO(Mision mision) {
+        return new MisionDTO(
+            mision.getMisionID(),
+            mision.getNombre(),
+            mision.getInsigniaID(),
+            CategoriaDonadorEnum.valueOf(mision.getCategoriaInicio().name()),
+            CategoriaDonadorEnum.valueOf(mision.getCategoriaFin().name())
+        );
+    }
 }
