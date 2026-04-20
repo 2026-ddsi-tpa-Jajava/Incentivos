@@ -1,6 +1,7 @@
 package ar.edu.utn.dds.k3003.dominio;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
+import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,5 +38,10 @@ public class MisionCompletitud extends Mision {
                 .collect(Collectors.toSet())
                 .size();
         return categoriasdistintas >= CATEGORIAS_REQUERIDAS;
+    }
+
+    @Override
+    public TipoMisionEnum getTipo() {
+        return TipoMisionEnum.COMPLETITUD;
     }
 }

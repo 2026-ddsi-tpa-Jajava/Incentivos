@@ -10,6 +10,7 @@ import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.DonadorDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
+import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.exceptions.DonadorNoEncontradoException;
 import java.util.List;
@@ -45,7 +46,8 @@ class FachadaIncentivosTest {
                 "Completitud",
                 insignia.id(),
                 CategoriaDonadorEnum.OCASIONAL,
-                CategoriaDonadorEnum.COLABORADOR));
+            CategoriaDonadorEnum.COLABORADOR,
+            TipoMisionEnum.COMPLETITUD));
 
         fachada.asignarInsigniaADonador(donadorId, insignia);
         fachada.asignarMisionADonador(donadorId, mision);
