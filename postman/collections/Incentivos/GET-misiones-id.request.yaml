@@ -1,0 +1,5 @@
+$kind: http-request
+name: Buscar Mision por ID
+method: GET
+url: '{{baseUrl}}/misiones/{{misionId}}'
+order: 7000

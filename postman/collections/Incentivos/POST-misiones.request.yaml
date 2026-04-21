@@ -1,0 +1,19 @@
+$kind: http-request
+name: Crear Mision
+method: POST
+url: '{{baseUrl}}/misiones'
+order: 5000
+headers:
+  - key: Content-Type
+    value: application/json
+body:
+  type: json
+  content: |-
+    {
+      "id": "mis-001",
+      "nombre": "Primera Misión",
+      "insigniaID": "ins-001",
+      "categoriaInicio": "OCASIONAL",
+      "categoriaFin": "COLABORADOR",
+      "tipo": "DONACIONES_EXITOSAS"
+    }

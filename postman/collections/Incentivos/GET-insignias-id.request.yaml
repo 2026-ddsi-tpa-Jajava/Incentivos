@@ -1,0 +1,5 @@
+$kind: http-request
+name: Buscar Insignia por ID
+method: GET
+url: '{{baseUrl}}/insignias/{{insigniaId}}'
+order: 4000

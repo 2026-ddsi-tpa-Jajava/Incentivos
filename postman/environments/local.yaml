@@ -1,0 +1,14 @@
+name: Local
+values:
+  - key: baseUrl
+    value: 'http://localhost:8080'
+    enabled: true
+    type: default
+  - key: insigniaId
+    value: 'ins-001'
+    enabled: true
+    type: default
+  - key: misionId
+    value: 'mis-001'
+    enabled: true
+    type: default

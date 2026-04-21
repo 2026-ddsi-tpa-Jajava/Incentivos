@@ -1,0 +1,5 @@
+$kind: http-request
+name: Listar Insignias
+method: GET
+url: '{{baseUrl}}/insignias'
+order: 3000

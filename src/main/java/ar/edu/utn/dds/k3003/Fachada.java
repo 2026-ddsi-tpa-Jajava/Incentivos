@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import org.springframework.stereotype.Component;
+
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
@@ -25,7 +27,6 @@ import ar.edu.utn.dds.k3003.exceptions.EntidadNoEncontradaException;
 import ar.edu.utn.dds.k3003.repositories.DonadorRepo;
 import ar.edu.utn.dds.k3003.repositories.InsigniaRepo;
 import ar.edu.utn.dds.k3003.repositories.MisionRepo;
-import org.springframework.stereotype.Component;
 
 @Component
 public class Fachada implements FachadaIncentivos {
@@ -129,10 +130,10 @@ public class Fachada implements FachadaIncentivos {
 
     @Override
     public List<InsigniaDTO> getInsigniasDeDonador(String donadorID) {
-        if (!donadorRepo.existe(donadorID)) {
-            verificarExistenciaExterna(donadorID);
-        }
         Donador donador = donadorRepo.buscar(donadorID);
+        if (donador.getInsignias().isEmpty()) {
+            throw new EntidadNoEncontradaException("El donador no tiene insignias asignadas");
+        }
         return donador.getInsignias().stream()
             .map(this::toInsigniaDTO)
             .collect(Collectors.toList());
@@ -140,12 +141,9 @@ public class Fachada implements FachadaIncentivos {
 
     @Override
     public MisionDTO getMisionEnCursoDeDonador(String donadorID) {
-        if (!donadorRepo.existe(donadorID)) {
-            verificarExistenciaExterna(donadorID);
-        }
         Donador donador = donadorRepo.buscar(donadorID);
         if (donador.getMisionActual() == null) {
-            return null;
+            throw new EntidadNoEncontradaException("El donador no tiene mision en curso");
         }
         return toMisionDTO(donador.getMisionActual());
     }
@@ -197,7 +195,9 @@ public class Fachada implements FachadaIncentivos {
 
     private List<String> extraerDatosParaMision(Mision mision, List<DonacionDTO> donaciones) {
         return switch (mision.getTipo()) {
-            case COMPLETITUD -> donaciones.stream().map(DonacionDTO::productoID).collect(Collectors.toList());
+            case COMPLETITUD -> donaciones.stream()
+                .map(d -> fachadaDonaciones.buscarProductoPorID(d.productoID()).categoriaID())
+                .collect(Collectors.toList());
             case DONACIONES_EXITOSAS -> donaciones.stream().map(d -> d.estado().name()).collect(Collectors.toList());
             case DONACIONES_ASCENDENTES, REVOLUCION_DONADORA ->
                 donaciones.stream().map(d -> String.valueOf(d.cantidad())).collect(Collectors.toList());
