@@ -51,4 +51,13 @@ class MisionRepoTest {
 
     Assertions.assertEquals(1, repo.todas().size());
   }
+
+  @Test
+  void buscarPorNombreNullOVacioLanzaExcepcion() {
+    MisionRepo repo = new MisionRepo();
+    repo.guardar(new MisionCompletitud("mis-4", "ins-4"));
+
+    Assertions.assertThrows(EntidadNoEncontradaException.class, () -> repo.buscarPorNombre(null));
+    Assertions.assertThrows(EntidadNoEncontradaException.class, () -> repo.buscarPorNombre(""));
+  }
 }

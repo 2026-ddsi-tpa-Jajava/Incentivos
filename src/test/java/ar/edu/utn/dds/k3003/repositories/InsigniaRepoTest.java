@@ -50,4 +50,15 @@ class InsigniaRepoTest {
 
     Assertions.assertEquals(1, repo.todas().size());
   }
+
+  @Test
+  void idsDuplicadosBuscaLaPrimeraCoincidenciaGuardada() {
+    InsigniaRepo repo = new InsigniaRepo();
+    repo.guardar(new Insignia("ins-dup", "Primera", "D1"));
+    repo.guardar(new Insignia("ins-dup", "Segunda", "D2"));
+
+    Insignia encontrada = repo.buscar("ins-dup");
+
+    Assertions.assertEquals("Primera", encontrada.getNombre());
+  }
 }
