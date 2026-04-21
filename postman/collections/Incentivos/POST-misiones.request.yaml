@@ -10,9 +10,9 @@ body:
   type: json
   content: |-
     {
-      "id": "mis-001",
+      "id": null,
       "nombre": "Primera Misión",
-      "insigniaID": "ins-001",
+      "insigniaID": "{{insigniaId}}",
       "categoriaInicio": "OCASIONAL",
       "categoriaFin": "COLABORADOR",
       "tipo": "DONACIONES_EXITOSAS"

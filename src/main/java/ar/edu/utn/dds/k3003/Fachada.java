@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
@@ -28,7 +28,7 @@ import ar.edu.utn.dds.k3003.repositories.DonadorRepo;
 import ar.edu.utn.dds.k3003.repositories.InsigniaRepo;
 import ar.edu.utn.dds.k3003.repositories.MisionRepo;
 
-@Component
+@Service
 public class Fachada implements FachadaIncentivos {
 
     private final DonadorRepo donadorRepo;

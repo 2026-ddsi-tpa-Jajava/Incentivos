@@ -10,7 +10,7 @@ body:
   type: json
   content: |-
     {
-      "id": "ins-001",
+      "id": null,
       "nombre": "Primer Donación",
       "descripcion": "Otorgada al realizar la primera donación"
     }
