@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
@@ -47,11 +48,13 @@ public class Fachada implements FachadaIncentivos {
     }
 
     @Override
+    @Autowired
     public void setFachadaDonaciones(FachadaDonaciones fachadaDonaciones) {
         this.fachadaDonaciones = fachadaDonaciones;
     }
 
     @Override
+    @Autowired
     public void setFachadaDonadoresYEntidades(FachadaDonadoresYEntidades fachadaDonadoresYEntidades) {
         this.fachadaDonadoresYEntidades = fachadaDonadoresYEntidades;
     }
