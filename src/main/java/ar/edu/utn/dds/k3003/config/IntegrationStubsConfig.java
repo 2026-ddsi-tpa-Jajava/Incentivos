@@ -21,6 +21,7 @@ public class IntegrationStubsConfig {
     @Bean
     public FachadaDonadoresYEntidades fachadaDonadoresYEntidadesStub() {
         InvocationHandler handler = (Object proxy, Method method, Object[] args) -> switch (method.getName()) {
+            case "agregarDonador" -> (DonadorDTO) args[0];
             case "buscarDonadorPorID" -> stubDonador((String) args[0]);
             case "setFachadaIncentivos" -> null;
             default -> unsupported(method);

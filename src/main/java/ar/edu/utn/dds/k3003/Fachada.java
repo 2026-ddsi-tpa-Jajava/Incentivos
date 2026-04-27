@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
+import ar.edu.utn.dds.k3003.catedra.dtos.donadoresYEntidades.DonadorDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
@@ -87,6 +88,20 @@ public class Fachada implements FachadaIncentivos {
 
         misionRepo.guardar(mision);
         return toMisionDTO(mision);
+    }
+
+    public DonadorDTO agregarDonador(DonadorDTO donadorDTO) {
+        if (donadorDTO == null) {
+            throw new IllegalArgumentException("El donador es invalido");
+        }
+        return fachadaDonadoresYEntidades.agregarDonador(donadorDTO);
+    }
+
+    public DonadorDTO buscarDonadorPorID(String donadorID) {
+        if (donadorID == null || donadorID.isBlank()) {
+            throw new IllegalArgumentException("El donadorID es invalido");
+        }
+        return fachadaDonadoresYEntidades.buscarDonadorPorID(donadorID);
     }
 
     public List<InsigniaDTO> getInsignias() {
