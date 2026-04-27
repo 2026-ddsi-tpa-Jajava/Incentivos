@@ -3,6 +3,7 @@ package ar.edu.utn.dds.k3003.dominio;
 import java.util.List;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
+import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
 
 public abstract class Mision {
 
@@ -29,6 +30,7 @@ public abstract class Mision {
      * @return true si la misión fue cumplida
      */
     public abstract boolean estaCumplida(List<?> donaciones);
+    public abstract TipoMisionEnum getTipo();
 
     public String getMisionID() { return misionID; }
     public String getNombre() { return nombre; }

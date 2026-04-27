@@ -1,6 +1,7 @@
 package ar.edu.utn.dds.k3003.dominio;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
+import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
 import java.util.List;
 
 /**
@@ -32,5 +33,10 @@ public class MisionDonacionesExitosas extends Mision {
                 .filter(ESTADO_EXITOSA::equals)
                 .count();
         return exitosas >= DONACIONES_REQUERIDAS;
+    }
+
+    @Override
+    public TipoMisionEnum getTipo() {
+        return TipoMisionEnum.DONACIONES_EXITOSAS;
     }
 }
