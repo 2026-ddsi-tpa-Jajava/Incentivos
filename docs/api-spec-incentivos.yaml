@@ -1,0 +1,345 @@
+openapi: 3.0.0
+info:
+  title: Incentivos API
+  description: "API para la gestión de insignias, misiones, asignaciones y procesamiento de donadores en el componente de Incentivos del TP de DDSI."
+  version: 1.0.0
+servers:
+  - url: /
+paths:
+  /insignias:
+    get:
+      summary: Listar todas las insignias
+      operationId: listarInsignias
+      responses:
+        "200":
+          description: Lista de insignias
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InsigniaResponse"
+    post:
+      summary: Crear una nueva insignia
+      operationId: crearInsignia
+      requestBody:
+        description: Datos para crear una insignia
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InsigniaRequest"
+        required: true
+      responses:
+        "201":
+          description: Insignia creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InsigniaResponse"
+        "400":
+          description: Solicitud inválida (datos incorrectos o incompletos)
+
+  /insignias/{id}:
+    get:
+      summary: Obtener una insignia por su ID
+      operationId: buscarInsignia
+      parameters:
+        - name: id
+          in: path
+          description: ID de la insignia (ej. ins-1, ins-2, etc.)
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Insignia encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InsigniaResponse"
+        "404":
+          description: Insignia no encontrada
+
+  /insignias/{donadorID}:
+    get:
+      summary: Obtener las insignias asignadas a un donador
+      operationId: getInsigniasDeDonador
+      parameters:
+        - name: donadorID
+          in: path
+          description: ID del donador (no empieza con "ins-")
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Lista de insignias asignadas al donador
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/InsigniaResponse"
+        "404":
+          description: Donador sin insignias o inexistente
+
+    post:
+      summary: Asignar una insignia a un donador
+      operationId: asignarInsigniaADonador
+      parameters:
+        - name: donadorID
+          in: path
+          description: ID del donador
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Datos de asignación de insignia
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InsigniaAsignacion"
+        required: true
+      responses:
+        "204":
+          description: Insignia asignada correctamente al donador
+        "400":
+          description: Solicitud inválida (datos incorrectos o incompletos)
+        "404":
+          description: Donador o insignia no encontrado
+
+  /misiones:
+    get:
+      summary: Listar todas las misiones
+      operationId: listarMisiones
+      responses:
+        "200":
+          description: Lista de misiones
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/MisionResponse"
+    post:
+      summary: Crear una nueva misión
+      operationId: crearMision
+      requestBody:
+        description: Datos para crear una misión
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MisionRequest"
+        required: true
+      responses:
+        "201":
+          description: Misión creada exitosamente
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MisionResponse"
+        "400":
+          description: Solicitud inválida (datos incorrectos o incompletos)
+
+  /misiones/{id}:
+    get:
+      summary: Obtener una misión por su ID
+      operationId: buscarMision
+      parameters:
+        - name: id
+          in: path
+          description: ID de la misión (ej. mis-1, mis-2, etc.)
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Misión encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MisionResponse"
+        "404":
+          description: Misión no encontrada
+
+  /misiones/{donadorID}:
+    get:
+      summary: Obtener la misión en curso de un donador
+      operationId: getMisionEnCursoDeDonador
+      parameters:
+        - name: donadorID
+          in: path
+          description: ID del donador (no empieza con "mis-")
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Misión en curso del donador
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MisionResponse"
+        "404":
+          description: Donador o misión en curso no encontrado
+
+    post:
+      summary: Asignar una misión a un donador
+      operationId: asignarMisionADonador
+      parameters:
+        - name: donadorID
+          in: path
+          description: ID del donador
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: Datos de asignación de misión
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MisionAsignacion"
+        required: true
+      responses:
+        "204":
+          description: Misión asignada correctamente al donador
+        "400":
+          description: Solicitud inválida (datos incorrectos o incompletos)
+        "404":
+          description: Donador o misión no encontrado
+
+  /procesamiento/{donadorID}:
+    post:
+      summary: Procesar acciones relacionadas con un donador
+      operationId: procesarDonador
+      parameters:
+        - name: donadorID
+          in: path
+          description: ID del donador a procesar
+          required: true
+          schema:
+            type: string
+      responses:
+        "204":
+          description: Procesamiento completado exitosamente
+        "404":
+          description: Donador no encontrado
+        "400":
+          description: Procesamiento incorrecto
+
+components:
+  schemas:
+    InsigniaRequest:
+      required:
+        - nombre
+        - descripcion
+      type: object
+      properties:
+        nombre:
+          type: string
+          description: Nombre de la insignia
+          example: Primer Donación
+        descripcion:
+          type: string
+          description: Descripción de la insignia
+          example: Otorgada al realizar la primera donación
+      description: Datos para crear una insignia
+
+    InsigniaResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Identificador único de la insignia
+          example: ins-1
+        nombre:
+          type: string
+          description: Nombre de la insignia
+          example: Primer Donación
+        descripcion:
+          type: string
+          description: Descripción de la insignia
+          example: Otorgada al realizar la primera donación
+      description: Representación de una insignia
+
+    MisionRequest:
+      required:
+        - nombre
+        - insigniaID
+        - categoriaInicio
+        - categoriaFin
+      type: object
+      properties:
+        nombre:
+          type: string
+          description: Nombre de la misión
+          example: Completitud
+        insigniaID:
+          type: string
+          description: ID de la insignia asociada a la misión
+          example: ins-1
+        categoriaInicio:
+          type: string
+          enum: [OCASIONAL, COLABORADOR, TRANSFORMADOR]
+          description: Categoría inicial de donador para esta misión
+          example: OCASIONAL
+        categoriaFin:
+          type: string
+          enum: [OCASIONAL, COLABORADOR, TRANSFORMADOR]
+          description: Categoría final tras completar la misión
+          example: COLABORADOR
+      description: Datos para crear una misión
+
+    MisionResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Identificador único de la misión
+          example: mis-1
+        nombre:
+          type: string
+          description: Nombre de la misión
+          example: Completitud
+        insigniaID:
+          type: string
+          description: ID de la insignia asociada
+          example: ins-1
+        categoriaInicio:
+          type: string
+          enum: [OCASIONAL, COLABORADOR, TRANSFORMADOR]
+          description: Categoría inicial requerida
+          example: OCASIONAL
+        categoriaFin:
+          type: string
+          enum: [OCASIONAL, COLABORADOR, TRANSFORMADOR]
+          description: Categoría final tras completar
+          example: COLABORADOR
+        tipo:
+          type: string
+          enum: [COMPLETITUD, DONACIONES_EXITOSAS, DONACIONES_ASCENDENTES, REVOLUCION_DONADORA]
+          description: Tipo de misión
+          example: COMPLETITUD
+      description: Representación de una misión
+
+    InsigniaAsignacion:
+      required:
+        - insigniaID
+      type: object
+      properties:
+        insigniaID:
+          type: string
+          description: ID de la insignia a asignar
+          example: ins-1
+      description: Datos para asignar una insignia a un donador
+
+    MisionAsignacion:
+      required:
+        - misionID
+      type: object
+      properties:
+        misionID:
+          type: string
+          description: ID de la misión a asignar
+          example: mis-1
+      description: Datos para asignar una misión a un donador
