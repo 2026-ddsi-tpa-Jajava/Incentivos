@@ -11,6 +11,10 @@
 - **Incentivos**
 
 ---
+🧩 Link al swagger
+- https://app.swaggerhub.com/apis/utn-5df/Incentivos_endpoints/1.0.0
+
+---
 
 🧩 Link al despliegue en Render
 -

@@ -21,6 +21,9 @@ public class IntegrationStubsConfig {
     @Bean
     public FachadaDonadoresYEntidades fachadaDonadoresYEntidadesStub() {
         InvocationHandler handler = (Object proxy, Method method, Object[] args) -> switch (method.getName()) {
+            case "equals" -> proxy == args[0];
+            case "hashCode" -> System.identityHashCode(proxy);
+            case "toString" -> "FachadaDonadoresYEntidadesStub";
             case "agregarDonador" -> (DonadorDTO) args[0];
             case "buscarDonadorPorID" -> stubDonador((String) args[0]);
             case "setFachadaIncentivos" -> null;
@@ -35,6 +38,9 @@ public class IntegrationStubsConfig {
     @Bean
     public FachadaDonaciones fachadaDonacionesStub() {
         InvocationHandler handler = (Object proxy, Method method, Object[] args) -> switch (method.getName()) {
+            case "equals" -> proxy == args[0];
+            case "hashCode" -> System.identityHashCode(proxy);
+            case "toString" -> "FachadaDonacionesStub";
             case "buscarPorDonadorYFechaInicio" -> List.of();
             case "buscarProductoPorID" -> stubProducto((String) args[0]);
             case "setFachadaDonadoresYEntidades", "setFachadaLogistica" -> null;
