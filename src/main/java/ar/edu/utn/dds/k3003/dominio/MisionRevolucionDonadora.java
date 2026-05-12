@@ -22,7 +22,7 @@ public class MisionRevolucionDonadora extends Mision {
         long validas = cantidadesDonaciones.stream()
             .map(Object::toString)
             .map(Integer::parseInt)
-            .filter(c -> c > CANTIDAD_MINIMA_DONACION)
+            .filter(c -> c >= CANTIDAD_MINIMA_DONACION)
             .count();
 
         return validas > DONACIONES_REQUERIDAS;
