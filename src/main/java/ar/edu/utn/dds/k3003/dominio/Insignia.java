@@ -1,10 +1,20 @@
 package ar.edu.utn.dds.k3003.dominio;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "insignias")
 public class Insignia {
 
-    private final String insigniaID;
-    private final String nombre;
-    private final String descripcion;
+    @Id
+    private String insigniaID;
+    private String nombre;
+    private String descripcion;
+
+    protected Insignia() {
+    }
 
     public Insignia(String insigniaID, String nombre, String descripcion) {
         this.insigniaID = insigniaID;
