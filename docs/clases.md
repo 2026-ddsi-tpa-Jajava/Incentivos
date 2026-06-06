@@ -1,4 +1,4 @@
-# 📊 Diagrama de Clases – Entrega 2 - Componente Incentivos
+# 📊 Diagrama de Clases – Entrega 3 - Componente Incentivos
 
 ## Descripción General
 
@@ -273,9 +273,9 @@ classDiagram
 ### Repositorios
 | Clase | Responsabilidad |
 |-------|-----------------|
-| **DonadorRepo** | Persiste donadores locales en memoria |
-| **InsigniaRepo** | Persiste insignias en memoria |
-| **MisionRepo** | Persiste misiones en memoria |
+| **DonadorRepo** | Interfaz JPA que persiste donadores locales en PostgreSQL |
+| **InsigniaRepo** | Interfaz JPA que persiste insignias en PostgreSQL |
+| **MisionRepo** | Interfaz JPA que persiste misiones en PostgreSQL |
 
 ### Controlador REST
 | Clase | Responsabilidad |
@@ -326,8 +326,8 @@ POST /procesamiento/{donadorID}
 
 ## Notas Importantes
 
-- La entrega se centra **únicamente** en el componente de Incentivos
-- No se modifican archivos en `/catedra`
-- Los modelos locales (`Donador`, `Insignia`, `Mision`) persisten en memoria
-- Las consultas de donadores externos usan `FachadaDonadoresYEntidades`
-- Las consultas de donaciones externas usan `FachadaDonaciones`
+- La entrega se centra **únicamente** en el componente de Incentivos.
+- No se modificaron archivos en la carpeta `/catedra` protegida.
+- Los modelos locales (`Donador`, `Insignia`, `Mision`) ahora **persisten en PostgreSQL** utilizando Spring Data JPA y mapeo de herencia `SINGLE_TABLE`.
+- Las consultas a donadores y donaciones se hacen mediante red (HTTP REST) consumiendo las APIs externas del equipo usando el `HttpClientBuilder`.
+- Se implementaron contadores de métricas mediante Micrometer/Datadog expuestos en el controller.

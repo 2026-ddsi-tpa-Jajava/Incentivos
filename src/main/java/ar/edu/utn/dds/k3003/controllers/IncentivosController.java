@@ -2,6 +2,7 @@ package ar.edu.utn.dds.k3003.controllers;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -13,6 +14,8 @@ import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
 import ar.edu.utn.dds.k3003.exceptions.DonadorNoEncontradoException;
 import ar.edu.utn.dds.k3003.exceptions.EntidadNoEncontradaException;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Counter;
 
 @RestController
 public class IncentivosController {
@@ -22,9 +25,21 @@ public class IncentivosController {
     public record MisionAsignacionRequest(String misionID) {}
 
     private final Fachada fachada;
+    private final Counter insigniasCreadas;
+    private final Counter misionesCreadas;
+    private final Counter procesarDonadorLlamadas;
+    private final Counter errores;
 
-    public IncentivosController(Fachada fachada) {
+    public IncentivosController(Fachada fachada, MeterRegistry registry) {
         this.fachada = fachada;
+        this.insigniasCreadas = Counter.builder("incentivos.insignias.creadas")
+            .description("Insignias creadas").register(registry);
+        this.misionesCreadas = Counter.builder("incentivos.misiones.creadas")
+            .description("Misiones creadas").register(registry);
+        this.procesarDonadorLlamadas = Counter.builder("incentivos.procesar_donador.llamadas")
+            .description("Llamadas a procesarDonador").register(registry);
+        this.errores = Counter.builder("incentivos.errores")
+            .description("Errores en endpoints").register(registry);
     }
 
     @GetMapping("/")
@@ -34,6 +49,7 @@ public class IncentivosController {
 
     @PostMapping("/insignias")
     public ResponseEntity<InsigniaDTO> crearInsignia(@RequestBody InsigniaDTO insigniaDTO) {
+        insigniasCreadas.increment();
         return ResponseEntity.status(HttpStatus.CREATED).body(fachada.agregarInsignia(insigniaDTO));
     }
 
@@ -62,6 +78,7 @@ public class IncentivosController {
 
     @PostMapping("/misiones")
     public ResponseEntity<MisionDTO> crearMision(@RequestBody MisionDTO misionDTO) {
+        misionesCreadas.increment();
         return ResponseEntity.status(HttpStatus.CREATED).body(fachada.agregarMision(misionDTO));
     }
 
@@ -90,7 +107,14 @@ public class IncentivosController {
 
     @PostMapping("/procesamiento/{donadorID}")
     public ResponseEntity<Void> procesarDonador(@PathVariable("donadorID") String donadorID) {
+        procesarDonadorLlamadas.increment();
         fachada.procesarDonador(donadorID);
+        return ResponseEntity.noContent().build();
+    }
+
+    @DeleteMapping("/reset")
+    public ResponseEntity<Void> limpiarTodo() {
+        fachada.limpiarTodo();
         return ResponseEntity.noContent().build();
     }
 

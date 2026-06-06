@@ -42,10 +42,12 @@ public class Fachada implements FachadaIncentivos {
     private FachadaDonaciones fachadaDonaciones;
     private FachadaDonadoresYEntidades fachadaDonadoresYEntidades;
 
-    public Fachada() {
-        this.donadorRepo = new DonadorRepo();
-        this.misionRepo = new MisionRepo();
-        this.insigniaRepo = new InsigniaRepo();
+    // ¡Acá inyectamos los repositorios de Spring Data JPA!
+    @Autowired
+    public Fachada(DonadorRepo donadorRepo, MisionRepo misionRepo, InsigniaRepo insigniaRepo) {
+        this.donadorRepo = donadorRepo;
+        this.misionRepo = misionRepo;
+        this.insigniaRepo = insigniaRepo;
     }
 
     @Override
@@ -68,7 +70,7 @@ public class Fachada implements FachadaIncentivos {
 
         String id = "ins-" + insigniaSeq.getAndIncrement();
         Insignia insignia = new Insignia(id, insigniaDTO.nombre(), insigniaDTO.descripcion());
-        insigniaRepo.guardar(insignia);
+        insigniaRepo.save(insignia); // Usamos save() de JPA
         return toInsigniaDTO(insignia);
     }
 
@@ -86,7 +88,7 @@ public class Fachada implements FachadaIncentivos {
             mision.setNombre(misionDTO.nombre());
         }
 
-        misionRepo.guardar(mision);
+        misionRepo.save(mision); // Usamos save() de JPA
         return toMisionDTO(mision);
     }
 
@@ -105,19 +107,23 @@ public class Fachada implements FachadaIncentivos {
     }
 
     public List<InsigniaDTO> getInsignias() {
-        return insigniaRepo.todas().stream().map(this::toInsigniaDTO).toList();
+        return insigniaRepo.findAll().stream().map(this::toInsigniaDTO).toList(); // Usamos findAll()
     }
 
     public InsigniaDTO getInsigniaPorID(String insigniaID) {
-        return toInsigniaDTO(insigniaRepo.buscar(insigniaID));
+        Insignia insignia = insigniaRepo.findById(insigniaID)
+                .orElseThrow(() -> new EntidadNoEncontradaException("Insignia no encontrada")); // Usamos findById()
+        return toInsigniaDTO(insignia);
     }
 
     public List<MisionDTO> getMisiones() {
-        return misionRepo.todas().stream().map(this::toMisionDTO).toList();
+        return misionRepo.findAll().stream().map(this::toMisionDTO).toList(); // Usamos findAll()
     }
 
     public MisionDTO getMisionPorID(String misionID) {
-        return toMisionDTO(misionRepo.buscar(misionID));
+        Mision mision = misionRepo.findById(misionID)
+                .orElseThrow(() -> new EntidadNoEncontradaException("Mision no encontrada")); // Usamos findById()
+        return toMisionDTO(mision);
     }
 
     @Override
@@ -129,8 +135,11 @@ public class Fachada implements FachadaIncentivos {
         }
 
         Donador donador = obtenerOCrearDonador(donadorID);
-        Insignia insignia = insigniaRepo.buscar(insigniaDTO.id());
+        Insignia insignia = insigniaRepo.findById(insigniaDTO.id())
+                .orElseThrow(() -> new EntidadNoEncontradaException("Insignia no encontrada en base de datos"));
+
         donador.agregarInsignia(insignia);
+        donadorRepo.save(donador); // ¡Guardamos el donador actualizado en la DB!
     }
 
     @Override
@@ -142,24 +151,31 @@ public class Fachada implements FachadaIncentivos {
         }
 
         Donador donador = obtenerOCrearDonador(donadorID);
-        Mision mision = misionRepo.buscar(misionDTO.id());
+        Mision mision = misionRepo.findById(misionDTO.id())
+                .orElseThrow(() -> new EntidadNoEncontradaException("Mision no encontrada en base de datos"));
+
         donador.setMisionActual(mision);
+        donadorRepo.save(donador); // ¡Guardamos el donador actualizado!
     }
 
     @Override
     public List<InsigniaDTO> getInsigniasDeDonador(String donadorID) {
-        Donador donador = donadorRepo.buscar(donadorID);
+        Donador donador = donadorRepo.findById(donadorID)
+                .orElseThrow(() -> new DonadorNoEncontradoException("Donador no existe en la base local"));
+
         if (donador.getInsignias().isEmpty()) {
             throw new EntidadNoEncontradaException("El donador no tiene insignias asignadas");
         }
         return donador.getInsignias().stream()
-            .map(this::toInsigniaDTO)
-            .collect(Collectors.toList());
+                .map(this::toInsigniaDTO)
+                .collect(Collectors.toList());
     }
 
     @Override
     public MisionDTO getMisionEnCursoDeDonador(String donadorID) {
-        Donador donador = donadorRepo.buscar(donadorID);
+        Donador donador = donadorRepo.findById(donadorID)
+                .orElseThrow(() -> new DonadorNoEncontradoException("Donador no existe en la base local"));
+
         if (donador.getMisionActual() == null) {
             throw new EntidadNoEncontradaException("El donador no tiene mision en curso");
         }
@@ -178,13 +194,14 @@ public class Fachada implements FachadaIncentivos {
         }
 
         List<DonacionDTO> donaciones = fachadaDonaciones
-            .buscarPorDonadorYFechaInicio(donadorID, LocalDate.of(2000, 1, 1));
+                .buscarPorDonadorYFechaInicio(donadorID, LocalDate.of(2000, 1, 1));
 
         List<String> datosEvaluacion = extraerDatosParaMision(misionActual, donaciones);
 
         if (misionActual.estaCumplida(datosEvaluacion)) {
             try {
-                Insignia insignia = insigniaRepo.buscar(misionActual.getInsigniaID());
+                Insignia insignia = insigniaRepo.findById(misionActual.getInsigniaID())
+                        .orElseThrow(() -> new EntidadNoEncontradaException(""));
                 donador.agregarInsignia(insignia);
             } catch (EntidadNoEncontradaException e) {
                 // Ignora insignia faltante en repo local.
@@ -193,6 +210,8 @@ public class Fachada implements FachadaIncentivos {
             CategoriaDonadorEnum nuevaCategoria = misionActual.getCategoriaFin();
             Mision siguienteMision = buscarMisionParaCategoria(nuevaCategoria);
             donador.avanzarCategoria(nuevaCategoria, siguienteMision);
+
+            donadorRepo.save(donador); // ¡Guardamos en DB que subió de nivel!
         }
     }
 
@@ -204,29 +223,29 @@ public class Fachada implements FachadaIncentivos {
         }
     }
 
+    // Adaptado para usar JPA (findById y save)
     private Donador obtenerOCrearDonador(String donadorID) {
-        if (!donadorRepo.existe(donadorID)) {
-            donadorRepo.guardar(new Donador(donadorID));
-        }
-        return donadorRepo.buscar(donadorID);
+        return donadorRepo.findById(donadorID).orElseGet(() -> {
+            return donadorRepo.save(new Donador(donadorID));
+        });
     }
 
     private List<String> extraerDatosParaMision(Mision mision, List<DonacionDTO> donaciones) {
         return switch (mision.getTipo()) {
             case COMPLETITUD -> donaciones.stream()
-                .map(d -> fachadaDonaciones.buscarProductoPorID(d.productoID()).categoriaID())
-                .collect(Collectors.toList());
+                    .map(d -> fachadaDonaciones.buscarProductoPorID(d.productoID()).categoriaID())
+                    .collect(Collectors.toList());
             case DONACIONES_EXITOSAS -> donaciones.stream().map(d -> d.estado().name()).collect(Collectors.toList());
             case DONACIONES_ASCENDENTES, REVOLUCION_DONADORA ->
-                donaciones.stream().map(d -> String.valueOf(d.cantidad())).collect(Collectors.toList());
+                    donaciones.stream().map(d -> String.valueOf(d.cantidad())).collect(Collectors.toList());
         };
     }
 
     private Mision buscarMisionParaCategoria(CategoriaDonadorEnum categoria) {
-        return misionRepo.todas().stream()
-            .filter(m -> m.getCategoriaInicio().equals(categoria))
-            .findFirst()
-            .orElse(null);
+        return misionRepo.findAll().stream()
+                .filter(m -> m.getCategoriaInicio().equals(categoria))
+                .findFirst()
+                .orElse(null);
     }
 
     private InsigniaDTO toInsigniaDTO(Insignia insignia) {
@@ -235,12 +254,12 @@ public class Fachada implements FachadaIncentivos {
 
     private MisionDTO toMisionDTO(Mision mision) {
         return new MisionDTO(
-            mision.getMisionID(),
-            mision.getNombre(),
-            mision.getInsigniaID(),
-            CategoriaDonadorEnum.valueOf(mision.getCategoriaInicio().name()),
-            CategoriaDonadorEnum.valueOf(mision.getCategoriaFin().name()),
-            mision.getTipo()
+                mision.getMisionID(),
+                mision.getNombre(),
+                mision.getInsigniaID(),
+                CategoriaDonadorEnum.valueOf(mision.getCategoriaInicio().name()),
+                CategoriaDonadorEnum.valueOf(mision.getCategoriaFin().name()),
+                mision.getTipo()
         );
     }
 
@@ -260,11 +279,18 @@ public class Fachada implements FachadaIncentivos {
             case COMPLETITUD -> new MisionCompletitud(id, misionDTO.insigniaID());
             case DONACIONES_EXITOSAS -> new MisionDonacionesExitosas(id, misionDTO.insigniaID());
             case DONACIONES_ASCENDENTES ->
-                new MisionDonacionesAscendentes(id, misionDTO.insigniaID(),
-                    misionDTO.categoriaInicio(), misionDTO.categoriaFin());
+                    new MisionDonacionesAscendentes(id, misionDTO.insigniaID(),
+                            misionDTO.categoriaInicio(), misionDTO.categoriaFin());
             case REVOLUCION_DONADORA ->
-                new MisionRevolucionDonadora(id, misionDTO.insigniaID(),
-                    misionDTO.categoriaInicio(), misionDTO.categoriaFin());
+                    new MisionRevolucionDonadora(id, misionDTO.insigniaID(),
+                            misionDTO.categoriaInicio(), misionDTO.categoriaFin());
         };
+    }
+
+    // Método agregado para limpiar la DB (Necesario para tu Controller)
+    public void limpiarTodo() {
+        donadorRepo.deleteAll();
+        misionRepo.deleteAll();
+        insigniaRepo.deleteAll();
     }
 }
