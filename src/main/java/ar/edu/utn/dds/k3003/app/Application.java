@@ -1,11 +1,27 @@
-package ar.edu.utn.dds.k3003.app;
+# Database - PostgreSQL en Render (sobrescribir con variables de entorno)
+spring.datasource.url=${DB_URL:jdbc:h2:mem:testdb}
+spring.datasource.driverClassName=${DB_DRIVER:org.h2.Driver}
+spring.datasource.username=${DB_USERNAME:sa}
+spring.datasource.password=${DB_PASSWORD:password}
+spring.jpa.database-platform=${DB_DIALECT:org.hibernate.dialect.H2Dialect}
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+# JPA
+spring.jpa.show-sql=false
+spring.jpa.hibernate.ddl-auto=update
 
-@SpringBootApplication(scanBasePackages = "ar.edu.utn.dds.k3003")
-public class Application {
-  public static void main(String[] args) {
-    SpringApplication.run(Application.class, args);
-  }
-}
+# H2 Console (solo desarrollo)
+spring.h2.console.enabled=true
+spring.h2.console.path=/h2-console
+
+# Actuator
+management.endpoints.web.exposure.include=*
+management.endpoint.health.show-details=always
+
+# Metricas Datadog
+management.datadog.metrics.export.api-key=${DD_API_KEY:}
+management.datadog.metrics.export.enabled=${DD_METRICS_ENABLED:false}
+management.datadog.metrics.export.step=30s
+
+# Server
+server.port=${PORT:8080}
+spring.mvc.pathmatch.matching-strategy=ant_path_matcher
