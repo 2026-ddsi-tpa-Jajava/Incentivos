@@ -1,0 +1,5 @@
+$kind: http-request
+name: Reiniciar
+url: "{{baseUrl}}/reset"
+method: DELETE
+order: 1620183511728127
