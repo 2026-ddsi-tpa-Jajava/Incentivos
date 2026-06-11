@@ -1,5 +1,7 @@
 package ar.edu.utn.dds.k3003.controllers;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -14,8 +16,8 @@ import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
 import ar.edu.utn.dds.k3003.exceptions.DonadorNoEncontradoException;
 import ar.edu.utn.dds.k3003.exceptions.EntidadNoEncontradaException;
-import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 
 @RestController
 public class IncentivosController {
@@ -43,8 +45,11 @@ public class IncentivosController {
     }
 
     @GetMapping("/")
-    public ResponseEntity<String> home() {
-        return ResponseEntity.ok("Servicio de Incentivos activo. Usa /insignias o /misiones.");
+    public ResponseEntity<Map<String, String>> home() {
+        return ResponseEntity.ok(Map.of(
+            "status", "UP",
+            "mensaje", "Servicio de Incentivos activo. Usa /insignias o /misiones."
+        ));
     }
 
     @PostMapping("/insignias")
@@ -58,7 +63,7 @@ public class IncentivosController {
         return ResponseEntity.ok(fachada.getInsignias());
     }
 
-    @GetMapping("/insignias/{id}")
+    @GetMapping("/insignias/{id:ins-[^/]+}")
     public ResponseEntity<InsigniaDTO> buscarInsignia(@PathVariable("id") String id) {
         return ResponseEntity.ok(fachada.getInsigniaPorID(id));
     }
@@ -87,7 +92,7 @@ public class IncentivosController {
         return ResponseEntity.ok(fachada.getMisiones());
     }
 
-    @GetMapping("/misiones/{id}")
+    @GetMapping("/misiones/{id:mis-[^/]+}")
     public ResponseEntity<MisionDTO> buscarMision(@PathVariable("id") String id) {
         return ResponseEntity.ok(fachada.getMisionPorID(id));
     }
@@ -122,12 +127,16 @@ public class IncentivosController {
         DonadorNoEncontradoException.class,
         EntidadNoEncontradaException.class
     })
-    public ResponseEntity<String> handleNotFound(RuntimeException exception) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(exception.getMessage());
+    public ResponseEntity<Map<String, String>> handleNotFound(RuntimeException exception) {
+        errores.increment();
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", exception.getMessage() != null ? exception.getMessage() : "Recurso no encontrado"));
     }
 
     @org.springframework.web.bind.annotation.ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleBadRequest(IllegalArgumentException exception) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(exception.getMessage());
+    public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException exception) {
+        errores.increment();
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", exception.getMessage() != null ? exception.getMessage() : "Petición incorrecta"));
     }
 }
