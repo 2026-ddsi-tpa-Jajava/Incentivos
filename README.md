@@ -14,12 +14,11 @@
 🧩 Link al swagger
 - https://app.swaggerhub.com/apis/utn-5df/Incentivos_endpoints/1.0.0
 
-- Swagger UI (app): https://entrega-2-lucianosuarez123-5.onrender.com/swagger-ui/index.html
-
+- Swagger UI (app): https://incentivos-yuse.onrender.com/swagger-ui/index.html 
 ---
 
 🧩 Link al despliegue en Render
--https://entrega-2-lucianosuarez123-5.onrender.com
+-https://incentivos-yuse.onrender.com
 
 ---
 
