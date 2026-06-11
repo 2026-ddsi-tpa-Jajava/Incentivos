@@ -5,8 +5,8 @@ import org.springframework.context.annotation.Configuration;
 
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
-import ar.edu.utn.dds.k3003.clients.FachadaDonadoresYEntidadesHttp;
 import ar.edu.utn.dds.k3003.clients.FachadaDonacionesHttp;
+import ar.edu.utn.dds.k3003.clients.FachadaDonadoresYEntidadesHttp;
 
 @Configuration
 public class IntegrationStubsConfig {
@@ -20,6 +20,6 @@ public class IntegrationStubsConfig {
     @Bean
     public FachadaDonaciones fachadaDonaciones() {
         // Puerto típico o URL de Render de tu compañero de Donaciones
-        return new FachadaDonacionesHttp("http://localhost:8082");
+        return new FachadaDonacionesHttp("https://donaciones-5u8i.onrender.com/");
     }
 }

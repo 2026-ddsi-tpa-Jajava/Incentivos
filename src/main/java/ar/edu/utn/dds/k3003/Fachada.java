@@ -42,7 +42,7 @@ public class Fachada implements FachadaIncentivos {
     private FachadaDonaciones fachadaDonaciones;
     private FachadaDonadoresYEntidades fachadaDonadoresYEntidades;
 
-    // ¡Acá inyectamos los repositorios de Spring Data JPA!
+  
     @Autowired
     public Fachada(DonadorRepo donadorRepo, MisionRepo misionRepo, InsigniaRepo insigniaRepo) {
         this.donadorRepo = donadorRepo;
@@ -139,7 +139,7 @@ public class Fachada implements FachadaIncentivos {
                 .orElseThrow(() -> new EntidadNoEncontradaException("Insignia no encontrada en base de datos"));
 
         donador.agregarInsignia(insignia);
-        donadorRepo.save(donador); // ¡Guardamos el donador actualizado en la DB!
+        donadorRepo.save(donador); 
     }
 
     @Override
@@ -155,7 +155,7 @@ public class Fachada implements FachadaIncentivos {
                 .orElseThrow(() -> new EntidadNoEncontradaException("Mision no encontrada en base de datos"));
 
         donador.setMisionActual(mision);
-        donadorRepo.save(donador); // ¡Guardamos el donador actualizado!
+        donadorRepo.save(donador); 
     }
 
     @Override
@@ -211,7 +211,7 @@ public class Fachada implements FachadaIncentivos {
             Mision siguienteMision = buscarMisionParaCategoria(nuevaCategoria);
             donador.avanzarCategoria(nuevaCategoria, siguienteMision);
 
-            donadorRepo.save(donador); // ¡Guardamos en DB que subió de nivel!
+            donadorRepo.save(donador); 
         }
     }
 
