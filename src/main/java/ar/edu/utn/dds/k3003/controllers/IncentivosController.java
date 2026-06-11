@@ -63,7 +63,7 @@ public class IncentivosController {
         return ResponseEntity.ok(fachada.getInsignias());
     }
 
-    @GetMapping("/insignias/{id}")
+    @GetMapping("/insignias/{id:ins-[^/]+}")
     public ResponseEntity<InsigniaDTO> buscarInsignia(@PathVariable("id") String id) {
         return ResponseEntity.ok(fachada.getInsigniaPorID(id));
     }
@@ -92,7 +92,7 @@ public class IncentivosController {
         return ResponseEntity.ok(fachada.getMisiones());
     }
 
-    @GetMapping("/misiones/{id}")
+    @GetMapping("/misiones/{id:mis-[^/]+}")
     public ResponseEntity<MisionDTO> buscarMision(@PathVariable("id") String id) {
         return ResponseEntity.ok(fachada.getMisionPorID(id));
     }
