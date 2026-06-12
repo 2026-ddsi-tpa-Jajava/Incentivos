@@ -68,7 +68,7 @@ public class IncentivosController {
         return ResponseEntity.ok(fachada.getInsigniaPorID(id));
     }
 
-    @PostMapping("/insignias/{donadorID:(?!ins-)[^/]+}")
+    @PostMapping("/insignias/{donadorID}")
     public ResponseEntity<Void> asignarInsigniaADonador(
         @PathVariable("donadorID") String donadorID,
         @RequestBody InsigniaAsignacionRequest request) {
@@ -97,7 +97,7 @@ public class IncentivosController {
         return ResponseEntity.ok(fachada.getMisionPorID(id));
     }
 
-    @PostMapping("/misiones/{donadorID:(?!mis-)[^/]+}")
+    @PostMapping("/misiones/{donadorID}")
     public ResponseEntity<Void> asignarMisionADonador(
         @PathVariable("donadorID") String donadorID,
         @RequestBody MisionAsignacionRequest request) {
