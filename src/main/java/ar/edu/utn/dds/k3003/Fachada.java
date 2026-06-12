@@ -219,7 +219,7 @@ public class Fachada implements FachadaIncentivos {
         try {
             fachadaDonadoresYEntidades.buscarDonadorPorID(donadorID);
         } catch (RuntimeException e) {
-            throw new DonadorNoEncontradoException(donadorID);
+            throw new DonadorNoEncontradoException("El donador con ID " + donadorID + " no existe en el sistema de Entidades.");
         }
     }
 
