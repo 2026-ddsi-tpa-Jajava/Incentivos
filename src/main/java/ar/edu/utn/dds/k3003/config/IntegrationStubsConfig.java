@@ -14,12 +14,12 @@ public class IntegrationStubsConfig {
     @Bean
     public FachadaDonadoresYEntidades fachadaDonadoresYEntidades() {
         // Puerto típico o URL de Render de tu compañero de Donadores y Entidades
-        return new FachadaDonadoresYEntidadesHttp("https://agusb1101-donadores-entidades.onrender.com/");
+        return new FachadaDonadoresYEntidadesHttp("https://agusb1101-donadores-entidades.onrender.com");
     }
 
     @Bean
     public FachadaDonaciones fachadaDonaciones() {
         // Puerto típico o URL de Render de tu compañero de Donaciones
-        return new FachadaDonacionesHttp("https://donaciones-5u8i.onrender.com/");
+        return new FachadaDonacionesHttp("https://donaciones-5u8i.onrender.com");
     }
 }
