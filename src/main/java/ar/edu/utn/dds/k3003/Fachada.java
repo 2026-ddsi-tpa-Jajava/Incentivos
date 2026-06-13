@@ -292,5 +292,7 @@ public class Fachada implements FachadaIncentivos {
         donadorRepo.deleteAll();
         misionRepo.deleteAll();
         insigniaRepo.deleteAll();
+        insigniaSeq.set(1);
+        misionSeq.set(1);
     }
 }
