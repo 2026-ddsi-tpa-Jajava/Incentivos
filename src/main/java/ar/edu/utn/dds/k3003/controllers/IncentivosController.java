@@ -105,7 +105,7 @@ public class IncentivosController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/misiones/{donadorID:(?!mis-)[^/]+}")
+    @GetMapping("/misiones/donador/{donadorID}")
     public ResponseEntity<MisionDTO> getMisionEnCursoDeDonador(@PathVariable("donadorID") String donadorID) {
         return ResponseEntity.ok(fachada.getMisionEnCursoDeDonador(donadorID));
     }
