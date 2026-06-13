@@ -1,5 +1,4 @@
 $kind: http-request
-name: POST-insignias-donadorID
 method: POST
 url: "{{baseUrl}}/insignias/{{donadorID}}"
 description: Asignar insignia a un donador

@@ -1,5 +1,4 @@
 $kind: http-request
-name: POST-misiones-donadorID
 method: POST
 url: "{{baseUrl}}/misiones/{{donadorID}}"
 description: Asignar misión a un donador
