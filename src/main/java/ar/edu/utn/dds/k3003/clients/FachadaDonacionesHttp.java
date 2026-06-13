@@ -19,17 +19,16 @@ public class FachadaDonacionesHttp implements FachadaDonaciones {
         this.urlBase = urlBase;
     }
 
-    @Override
-    public List<DonacionDTO> buscarPorDonadorYFechaInicio(String donadorID, LocalDate fecha) {
-        // Armamos la URL pasándole el filtro por Query Params que espera el módulo de Donaciones
-        String url = urlBase + "/donaciones?donadorID=" + donadorID;
-        try {
-            // ¡Acá usamos el TypeReference del builder de tu compañero para el mapeo de la Lista!
-            return HttpClientBuilder.get(url, new TypeReference<List<DonacionDTO>>() {});
-        } catch (Exception e) {
-            throw new RuntimeException("Error al buscar las donaciones por red del donador: " + donadorID, e);
-        }
+@Override
+public List<DonacionDTO> buscarPorDonadorYFechaInicio(String donadorID, LocalDate fecha) {
+    // Cambiamos la URL para que coincida con el /donaciones/search?donadorID=...&fechaInicio=... de Ale
+    String url = urlBase + "/donaciones/search?donadorID=" + donadorID + "&fechaInicio=" + fecha.toString();
+    try {
+        return HttpClientBuilder.get(url, new TypeReference<List<DonacionDTO>>() {});
+    } catch (Exception e) {
+        throw new RuntimeException("Error al buscar las donaciones por red", e);
     }
+}
 
     @Override
     public ProductoDTO buscarProductoPorID(String productoID) {
