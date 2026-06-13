@@ -21,11 +21,14 @@ public class FachadaDonadoresYEntidadesHttp implements FachadaDonadoresYEntidade
 
     @Override
     public DonadorDTO buscarDonadorPorID(String donadorID) {
+        // Armamos la URL 
         String url = urlBase + "/donadores/" + donadorID;
         try {
-            // ¡Acá usamos la clase de tu compañero!
+            System.out.println("Intentando buscar donador ID: '" + donadorID + "' en " + url);
             return HttpClientBuilder.get(url, DonadorDTO.class);
         } catch (Exception e) {
+            System.err.println("!!! EXPLOTÓ LA BÚSQUEDA DEL DONADOR !!!");
+            e.printStackTrace(); // Esto imprime el error exacto en la consola
             throw new RuntimeException("Error al buscar el donador en el módulo externo: " + url, e);
         }
     }
