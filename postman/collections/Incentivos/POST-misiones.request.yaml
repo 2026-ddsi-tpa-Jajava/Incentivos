@@ -1,11 +1,10 @@
 $kind: http-request
 name: Crear Mision
 method: POST
-url: '{{baseUrl}}/misiones'
+url: "{{baseUrl}}/misiones"
 order: 5000
 headers:
-  - key: Content-Type
-    value: application/json
+  Content-Type: application/json
 body:
   type: json
   content: |-
