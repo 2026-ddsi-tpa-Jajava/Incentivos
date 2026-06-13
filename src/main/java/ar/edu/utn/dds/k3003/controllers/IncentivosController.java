@@ -75,26 +75,26 @@ public class IncentivosController {
         fachada.asignarInsigniaADonador(donadorID, new InsigniaDTO(request.insigniaID(), null, null));
         return ResponseEntity.noContent().build();
     }
-
-    @GetMapping("/insignias/{donadorID:(?!ins-)[^/]+}")
-    public ResponseEntity<?> getInsigniasDeDonador(@PathVariable("donadorID") String donadorID) {
-        return ResponseEntity.ok(fachada.getInsigniasDeDonador(donadorID));
+    @GetMapping("/misiones/{parametro}")
+public ResponseEntity<MisionDTO> buscarMisionODonador(@PathVariable("parametro") String parametro) {
+    if (parametro.startsWith("mis-")) {
+        return ResponseEntity.ok(fachada.getMisionPorID(parametro));
     }
+    return ResponseEntity.ok(fachada.getMisionEnCursoDeDonador(parametro));
+}
+
+@GetMapping("/insignias/{parametro}")
+public ResponseEntity<?> buscarInsigniaODonador(@PathVariable("parametro") String parametro) {
+    if (parametro.startsWith("ins-")) {
+        return ResponseEntity.ok(fachada.getInsigniaPorID(parametro));
+    }
+    return ResponseEntity.ok(fachada.getInsigniasDeDonador(parametro));
+}
 
     @PostMapping("/misiones")
     public ResponseEntity<MisionDTO> crearMision(@RequestBody MisionDTO misionDTO) {
         misionesCreadas.increment();
         return ResponseEntity.status(HttpStatus.CREATED).body(fachada.agregarMision(misionDTO));
-    }
-
-    @GetMapping("/misiones")
-    public ResponseEntity<?> listarMisiones() {
-        return ResponseEntity.ok(fachada.getMisiones());
-    }
-
-    @GetMapping("/misiones/{id:mis-[^/]+}")
-    public ResponseEntity<MisionDTO> buscarMision(@PathVariable("id") String id) {
-        return ResponseEntity.ok(fachada.getMisionPorID(id));
     }
 
     @PostMapping("/misiones/{donadorID}")
@@ -103,11 +103,6 @@ public class IncentivosController {
         @RequestBody MisionAsignacionRequest request) {
         fachada.asignarMisionADonador(donadorID, new MisionDTO(request.misionID(), null, null, null, null, null));
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/misiones/donador/{donadorID}")
-    public ResponseEntity<MisionDTO> getMisionEnCursoDeDonador(@PathVariable("donadorID") String donadorID) {
-        return ResponseEntity.ok(fachada.getMisionEnCursoDeDonador(donadorID));
     }
 
     @PostMapping("/procesamiento/{donadorID}")
