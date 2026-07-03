@@ -1,11 +1,12 @@
 package ar.edu.utn.dds.k3003.dominio;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Entity
 @DiscriminatorValue("COMPLETITUD")
@@ -18,6 +19,11 @@ public class MisionCompletitud extends Mision {
     public MisionCompletitud(String misionID, String insigniaID) {
         super(misionID, "Completitud", insigniaID,
                 CategoriaDonadorEnum.OCASIONAL, CategoriaDonadorEnum.COLABORADOR);
+    }
+
+    public MisionCompletitud(String misionID, String insigniaID,
+            CategoriaDonadorEnum categoriaInicio, CategoriaDonadorEnum categoriaFin) {
+        super(misionID, "Completitud", insigniaID, categoriaInicio, categoriaFin);
     }
 
     @Override

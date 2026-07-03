@@ -15,6 +15,9 @@ public class FachadaDonadoresYEntidadesHttp implements FachadaDonadoresYEntidade
 
     private final String urlBase;
 
+    private record EstadoRequest(String estado) {}
+    private record CategoriaRequest(String categoria) {}
+
     public FachadaDonadoresYEntidadesHttp(String urlBase) {
         this.urlBase = urlBase;
     }
@@ -28,7 +31,6 @@ public class FachadaDonadoresYEntidadesHttp implements FachadaDonadoresYEntidade
             return HttpClientBuilder.get(url, DonadorDTO.class);
         } catch (Exception e) {
             System.err.println("!!! EXPLOTÓ LA BÚSQUEDA DEL DONADOR !!!");
-            e.printStackTrace(); // Esto imprime el error exacto en la consola
             throw new RuntimeException("Error al buscar el donador en el módulo externo: " + url, e);
         }
     }
@@ -41,8 +43,25 @@ public class FachadaDonadoresYEntidadesHttp implements FachadaDonadoresYEntidade
     @Override public QuejaDTO agregarQueja(QuejaDTO q) { return null; }
     @Override public Boolean puedeDonar(String id) { return true; }
     @Override public List<QuejaDTO> obtenerQuejasDe(String id) { return List.of(); }
-    @Override public DonadorDTO modificarEstado(String id, EstadoDonadorEnum e) { return null; }
-    @Override public DonadorDTO modifcarCategoria(String id, String c) { return null; }
+    @Override
+    public DonadorDTO modificarEstado(String id, EstadoDonadorEnum estado) {
+        String url = urlBase + "/donadores/" + id + "/estado";
+        try {
+            return HttpClientBuilder.patch(url, new EstadoRequest(estado.name()), DonadorDTO.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al modificar estado del donador en el modulo externo", e);
+        }
+    }
+
+    @Override
+    public DonadorDTO modifcarCategoria(String id, String categoria) {
+        String url = urlBase + "/donadores/" + id + "/categoria";
+        try {
+            return HttpClientBuilder.patch(url, new CategoriaRequest(categoria), DonadorDTO.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al modificar categoria del donador en el modulo externo", e);
+        }
+    }
     @Override public List<NecesidadMaterialDTO> obtenerNecesidadesInsatisfechasDe(String p) { return List.of(); }
     @Override public NecesidadMaterialDTO satisfacerNecesidad(String id, Integer c) { return null; }
     @Override public DonadorStatsDTO estadisticasDonador(String id) { return null; }

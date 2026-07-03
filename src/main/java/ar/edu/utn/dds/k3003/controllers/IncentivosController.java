@@ -1,5 +1,6 @@
 package ar.edu.utn.dds.k3003.controllers;
 
+import java.util.List;
 import java.util.Map;
 
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.RestController;
 import ar.edu.utn.dds.k3003.Fachada;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
+import ar.edu.utn.dds.k3003.dominio.CambioCategoria;
+import ar.edu.utn.dds.k3003.dominio.Donador;
 import ar.edu.utn.dds.k3003.exceptions.DonadorNoEncontradoException;
 import ar.edu.utn.dds.k3003.exceptions.EntidadNoEncontradaException;
 import io.micrometer.core.instrument.Counter;
@@ -25,6 +28,15 @@ public class IncentivosController {
     public record InsigniaAsignacionRequest(String insigniaID) {}
 
     public record MisionAsignacionRequest(String misionID) {}
+
+    public record CambioCategoriaResponse(String anterior, String nueva, String fechaHora, String motivo) {}
+
+    public record EstadoDonadorResponse(
+        String donadorID,
+        String categoria,
+        String misionActualID,
+        List<String> insignias,
+        List<CambioCategoriaResponse> historialCategorias) {}
 
     private final Fachada fachada;
     private final Counter insigniasCreadas;
@@ -112,6 +124,24 @@ public ResponseEntity<?> buscarInsigniaODonador(@PathVariable("parametro") Strin
         return ResponseEntity.noContent().build();
     }
 
+    @GetMapping("/donadores/{donadorID}/estado")
+    public ResponseEntity<EstadoDonadorResponse> obtenerEstadoDonador(@PathVariable("donadorID") String donadorID) {
+        Donador donador = fachada.getEstadoDonadorLocal(donadorID);
+        List<String> insignias = donador.getInsignias().stream().map(i -> i.getInsigniaID()).toList();
+        List<CambioCategoriaResponse> historial = donador.getHistorialCategorias().stream()
+            .map(this::toCambioCategoriaResponse)
+            .toList();
+        String misionActualID = donador.getMisionActual() != null ? donador.getMisionActual().getMisionID() : null;
+
+        return ResponseEntity.ok(new EstadoDonadorResponse(
+            donador.getDonadorID(),
+            donador.getCategoria().name(),
+            misionActualID,
+            insignias,
+            historial
+        ));
+    }
+
     @DeleteMapping("/reset")
     public ResponseEntity<Void> limpiarTodo() {
         fachada.limpiarTodo();
@@ -133,5 +163,14 @@ public ResponseEntity<?> buscarInsigniaODonador(@PathVariable("parametro") Strin
         errores.increment();
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", exception.getMessage() != null ? exception.getMessage() : "Petición incorrecta"));
+    }
+
+    private CambioCategoriaResponse toCambioCategoriaResponse(CambioCategoria cambio) {
+        String anterior = cambio.getCategoriaAnterior() != null ? cambio.getCategoriaAnterior().name() : null;
+        return new CambioCategoriaResponse(
+            anterior,
+            cambio.getCategoriaNueva().name(),
+            cambio.getFechaHora().toString(),
+            cambio.getMotivo());
     }
 }

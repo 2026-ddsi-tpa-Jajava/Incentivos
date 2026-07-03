@@ -182,6 +182,11 @@ public class Fachada implements FachadaIncentivos {
         return toMisionDTO(donador.getMisionActual());
     }
 
+    public Donador getEstadoDonadorLocal(String donadorID) {
+        return donadorRepo.findById(donadorID)
+                .orElseThrow(() -> new DonadorNoEncontradoException("Donador no existe en la base local"));
+    }
+
     @Override
     public void procesarDonador(String donadorID) {
         verificarExistenciaExterna(donadorID);
@@ -210,6 +215,12 @@ public class Fachada implements FachadaIncentivos {
             CategoriaDonadorEnum nuevaCategoria = misionActual.getCategoriaFin();
             Mision siguienteMision = buscarMisionParaCategoria(nuevaCategoria);
             donador.avanzarCategoria(nuevaCategoria, siguienteMision);
+
+            try {
+                fachadaDonadoresYEntidades.modifcarCategoria(donadorID, nuevaCategoria.name());
+            } catch (RuntimeException e) {
+                // Si la sincronizacion externa falla, preservamos el avance local para no bloquear incentivos.
+            }
 
             donadorRepo.save(donador); 
         }
@@ -276,8 +287,10 @@ public class Fachada implements FachadaIncentivos {
 
     private Mision construirMision(String id, MisionDTO misionDTO, TipoMisionEnum tipo) {
         return switch (tipo) {
-            case COMPLETITUD -> new MisionCompletitud(id, misionDTO.insigniaID());
-            case DONACIONES_EXITOSAS -> new MisionDonacionesExitosas(id, misionDTO.insigniaID());
+            case COMPLETITUD -> new MisionCompletitud(id, misionDTO.insigniaID(),
+                misionDTO.categoriaInicio(), misionDTO.categoriaFin());
+            case DONACIONES_EXITOSAS -> new MisionDonacionesExitosas(id, misionDTO.insigniaID(),
+                misionDTO.categoriaInicio(), misionDTO.categoriaFin());
             case DONACIONES_ASCENDENTES ->
                     new MisionDonacionesAscendentes(id, misionDTO.insigniaID(),
                             misionDTO.categoriaInicio(), misionDTO.categoriaFin());
