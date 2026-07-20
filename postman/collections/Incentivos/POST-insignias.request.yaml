@@ -1,16 +1,160 @@
 $kind: http-request
 name: Crear Insignia
 method: POST
-url: '{{baseUrl}}/insignias'
+url: "{{baseUrl}}/insignias"
+scripts:
+  - type: beforeRequest
+    code: "// 1. El mapa de datos en el orden exacto de tu flujo\r
+
+      const loteDeDatos = [\r
+
+      \  {\r
+
+      \    insigniaNom: \"Insignia de Completitud\",\r
+
+      \    insigniaDesc: \"Otorgada por diversificar la ayuda donando en tres categorías distintas de productos.\",\r
+
+      \    misionNom: \"Misión Completitud\",\r
+
+      \    catInicio: \"OCASIONAL\",\r
+
+      \    catFin: \"COLABORADOR\",\r
+
+      \    tipoMision: \"COMPLETITUD\"\r
+
+      \  },\r
+
+      \  {\r
+
+      \    insigniaNom: \"Insignia de Donaciones Exitosas\",\r
+
+      \    insigniaDesc: \"Otorgada por alcanzar un historial de 20 donaciones entregadas de manera impecable.\",\r
+
+      \    misionNom: \"Misión Donaciones Exitosas\",\r
+
+      \    catInicio: \"COLABORADOR\",\r
+
+      \    catFin: \"TRANSFORMADOR\",\r
+
+      \    tipoMision: \"DONACIONES_EXITOSAS\"\r
+
+      \  },\r
+
+      \  {\r
+
+      \    insigniaNom: \"Insignia de Donaciones Ascendentes\",\r
+
+      \    insigniaDesc: \"Otorgada por mantener una tendencia ascendente en la cantidad de productos en las últimas 5 donaciones.\",\r
+
+      \    misionNom: \"Misión Donaciones Ascendentes\",\r
+
+      \    catInicio: \"COLABORADOR\",\r
+
+      \    catFin: \"SALVADOR\",\r
+
+      \    tipoMision: \"DONACIONES_ASCENDENTES\"\r
+
+      \  },\r
+
+      \  {\r
+
+      \    insigniaNom: \"Insignia de Revolución Donadora\",\r
+
+      \    insigniaDesc: \"Otorgada a los pilares de la organización por realizar más de 10 donaciones de gran volumen.\",\r
+
+      \    misionNom: \"Misión Revolución Donadora (desde Transformador)\",\r
+
+      \    catInicio: \"TRANSFORMADOR\",\r
+
+      \    catFin: \"REVOLUCIONARIO\",\r
+
+      \    tipoMision: \"REVOLUCION_DONADORA\"\r
+
+      \  },\r
+
+      \  {\r
+
+      \    insigniaNom: \"Insignia de Revolución Donadora\", // Para mantener la simplicidad de 1 y 1, creamos la instancia\r
+
+      \    insigniaDesc: \"Otorgada a los pilares de la organización por realizar más de 10 donaciones de gran volumen.\",\r
+
+      \    misionNom: \"Misión Revolución Donadora (desde Salvador)\",\r
+
+      \    catInicio: \"SALVADOR\",\r
+
+      \    catFin: \"REVOLUCIONARIO\",\r
+
+      \    tipoMision: \"REVOLUCION_DONADORA\"\r
+
+      \  }\r
+
+      ];\r
+
+      \r
+
+      // 2. Leemos en qué número de paso vamos (si no existe, empieza en 0)\r
+
+      let pasoActual = parseInt(pm.globals.get(\"pasoActual\")) || 0;\r
+
+      \r
+
+      // Si nos pasamos del límite de 5, volvemos a empezar desde el principio\r
+
+      if (pasoActual >= loteDeDatos.length) {\r
+
+      \    pasoActual = 0;\r
+
+      }\r
+
+      \r
+
+      const filaActual = loteDeDatos[pasoActual];\r
+
+      \r
+
+      // 3. Seteamos las variables globales que usará el BODY de esta Insignia\r
+
+      pm.globals.set(\"insignia_nombre\", filaActual.insigniaNom);\r
+
+      pm.globals.set(\"insignia_descripcion\", filaActual.insigniaDesc);\r
+
+      \r
+
+      // 4. Dejamos preparadas en memoria las variables para la Misión que vendrá después\r
+
+      pm.globals.set(\"mision_nombre\", filaActual.misionNom);\r
+
+      pm.globals.set(\"mision_cat_inicio\", filaActual.catInicio);\r
+
+      pm.globals.set(\"mision_cat_fin\", filaActual.catFin);\r
+
+      pm.globals.set(\"mision_tipo\", filaActual.tipoMision);\r
+
+      \r
+
+      // Guardamos el paso actual para no perder el índice\r
+
+      pm.globals.set(\"pasoActual\", pasoActual);"
+    language: text/javascript
+  - type: afterResponse
+    code: "const respuesta = pm.response.json();\r
+
+      if (respuesta && respuesta.id) {\r
+
+      \    pm.globals.set(\"insigniaId\", respuesta.id);\r
+
+      \    console.log(\"Se cargaron datos para el paso: \" + pm.globals.get(\"pasoActual\"));\r
+
+      }"
+    language: text/javascript
 order: 2000
 headers:
-  - key: Content-Type
-    value: application/json
+  Content-Type: application/json
 body:
   type: json
   content: |-
     {
       "id": null,
-      "nombre": "Primer Donación",
-      "descripcion": "Otorgada al realizar la primera donación"
+      "nombre": "{{insignia_nombre}}",
+      "descripcion": "{{insignia_descripcion}}"
     }

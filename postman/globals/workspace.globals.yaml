@@ -1,2 +1,26 @@
 name: Globals
-values: []
+values:
+  - key: insigniaId
+    value: ''
+    enabled: true
+  - key: insignia_nombre
+    value: ''
+    enabled: true
+  - key: insignia_descripcion
+    value: ''
+    enabled: true
+  - key: mision_nombre
+    value: ''
+    enabled: true
+  - key: mision_cat_inicio
+    value: ''
+    enabled: true
+  - key: mision_cat_fin
+    value: ''
+    enabled: true
+  - key: mision_tipo
+    value: ''
+    enabled: true
+  - key: pasoActual
+    value: ''
+    enabled: true
