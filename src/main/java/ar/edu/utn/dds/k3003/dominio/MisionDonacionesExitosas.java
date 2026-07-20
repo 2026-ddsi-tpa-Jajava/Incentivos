@@ -11,7 +11,7 @@ import jakarta.persistence.Entity;
 @DiscriminatorValue("DONACIONES_EXITOSAS")
 public class MisionDonacionesExitosas extends Mision {
 
-    private static final int DONACIONES_REQUERIDAS = 5;
+    private static final int DONACIONES_REQUERIDAS = 20;
     private static final String ESTADO_EXITOSA = "ACEPTADA";
 
     protected MisionDonacionesExitosas() {}

@@ -22,3 +22,21 @@
 
 ---
 
+🧩 Variables de entorno utilizadas
+- `URL_DONADORES_ENTIDADES`
+- `URL_DONACIONES`
+- `DB_URL`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+- `DB_DRIVER`
+- `DB_DIALECT`
+- `DD_API_KEY`
+
+---
+
+🧩 Criterios de misiones
+- `COMPLETITUD`: 3 categorías distintas.
+- `DONACIONES_EXITOSAS`: 20 donaciones aceptadas.
+- `DONACIONES_ASCENDENTES`: últimas 5 donaciones en tendencia ascendente.
+- `REVOLUCION_DONADORA`: más de 10 donaciones con cantidad mayor a 50.
+

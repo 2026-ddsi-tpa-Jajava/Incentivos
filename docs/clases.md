@@ -172,6 +172,7 @@ classDiagram
         +buscarMision(id) ResponseEntity
         +asignarMisionADonador(donadorID, request) ResponseEntity
         +getMisionEnCursoDeDonador(donadorID) ResponseEntity
+        +obtenerEstadoDonador(donadorID) ResponseEntity
         +procesarDonador(donadorID) ResponseEntity
     }
 
@@ -259,10 +260,10 @@ classDiagram
 | Clase | Responsabilidad |
 |-------|-----------------|
 | **Mision** | Clase abstracta que define el contrato de una misión |
-| **MisionCompletitud** | Donador debe donar de 3+ categorías diferentes |
-| **MisionDonacionesExitosas** | Donador debe tener 20+ donaciones aceptadas |
+| **MisionCompletitud** | Donador debe donar en 3 categorías diferentes |
+| **MisionDonacionesExitosas** | Donador debe tener 20 donaciones aceptadas |
 | **MisionDonacionesAscendentes** | Donador debe realizar donaciones de cantidad ascendente |
-| **MisionRevolucionDonadora** | Donador debe alcanzar volumen específico total |
+| **MisionRevolucionDonadora** | Donador debe superar 10 donaciones con cantidad mayor a 50 |
 
 ### Dominio - Donador Local
 | Clase | Responsabilidad |
