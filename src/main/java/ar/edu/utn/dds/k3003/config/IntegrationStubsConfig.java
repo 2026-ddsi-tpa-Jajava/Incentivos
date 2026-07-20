@@ -1,5 +1,6 @@
 package ar.edu.utn.dds.k3003.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -11,15 +12,19 @@ import ar.edu.utn.dds.k3003.clients.FachadaDonadoresYEntidadesHttp;
 @Configuration
 public class IntegrationStubsConfig {
 
+    @Value("${URL_DONADORES_ENTIDADES:https://agusb1101-donadores-entidades.onrender.com}")
+    private String urlDonadoresYEntidades;
+
+    @Value("${URL_DONACIONES:https://donaciones-5u8i.onrender.com}")
+    private String urlDonaciones;
+
     @Bean
     public FachadaDonadoresYEntidades fachadaDonadoresYEntidades() {
-        // Puerto típico o URL de Render de tu compañero de Donadores y Entidades
-        return new FachadaDonadoresYEntidadesHttp("https://agusb1101-donadores-entidades.onrender.com");
+        return new FachadaDonadoresYEntidadesHttp(urlDonadoresYEntidades);
     }
 
     @Bean
     public FachadaDonaciones fachadaDonaciones() {
-        // Puerto típico o URL de Render de tu compañero de Donaciones
-        return new FachadaDonacionesHttp("https://donaciones-5u8i.onrender.com");
+        return new FachadaDonacionesHttp(urlDonaciones);
     }
 }

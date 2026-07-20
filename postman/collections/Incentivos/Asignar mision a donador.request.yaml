@@ -1,0 +1,12 @@
+$kind: http-request
+method: POST
+url: "{{baseUrl}}/misiones/{{donadorID}}"
+description: Asignar misión a un donador
+pathVariables:
+  donadorID: "{{donadorID}}"
+body:
+  type: json
+  content: |-
+    {
+      "misionID": "mis-1"
+    }

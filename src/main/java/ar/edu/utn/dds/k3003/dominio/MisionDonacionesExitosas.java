@@ -1,10 +1,11 @@
 package ar.edu.utn.dds.k3003.dominio;
 
+import java.util.List;
+
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
-import java.util.List;
 
 @Entity
 @DiscriminatorValue("DONACIONES_EXITOSAS")
@@ -18,6 +19,11 @@ public class MisionDonacionesExitosas extends Mision {
     public MisionDonacionesExitosas(String misionID, String insigniaID) {
         super(misionID, "Donaciones Exitosas", insigniaID,
                 CategoriaDonadorEnum.COLABORADOR, CategoriaDonadorEnum.TRANSFORMADOR);
+    }
+
+    public MisionDonacionesExitosas(String misionID, String insigniaID,
+            CategoriaDonadorEnum categoriaInicio, CategoriaDonadorEnum categoriaFin) {
+        super(misionID, "Donaciones Exitosas", insigniaID, categoriaInicio, categoriaFin);
     }
 
     @Override

@@ -1,4 +1,4 @@
-# Diagrama de Arquitectura – Servicio de Incentivos – Entrega 1
+# Diagrama de Arquitectura – Servicio de Incentivos – Entrega 3
 
 ## Diagrama de Componentes
 
@@ -17,8 +17,8 @@ graph TD
     MC["MisionCompletitud"]
     MD["MisionDonacionesExitosas"]
 
-    FDE["FachadaDonadoresYEntidades\nexterno - simulado con mock"]
-    FD["FachadaDonaciones\nexterno - simulado con mock"]
+    FDE["FachadaDonadoresYEntidadesHttp\ncliente REST"]
+    FD["FachadaDonacionesHttp\ncliente REST"]
 
     C -->|invoca metodos| FI
     FI -->|verifica existencia donador| FDE
@@ -68,12 +68,14 @@ graph LR
 
 ---
 
-## Interacciones simuladas
+## Interacciones externas reales
 
 | Origen | Destino | Operacion | Como se simula |
 |---|---|---|---|
-| Incentivos | Donadores y Entidades | buscarDonadorPorID | Mock Mockito |
-| Incentivos | Donaciones | buscarPorDonadorYFechaInicio | Mock Mockito |
+| Incentivos | Donadores y Entidades | buscarDonadorPorID | HTTP GET |
+| Incentivos | Donadores y Entidades | modifcarCategoria | HTTP PATCH |
+| Incentivos | Donaciones | buscarPorDonadorYFechaInicio | HTTP GET |
+| Incentivos | Donaciones | buscarProductoPorID | HTTP GET |
 
 ---
 
@@ -83,8 +85,8 @@ graph LR
 sequenceDiagram
     actor Cron
     participant F as Fachada Incentivos
-    participant DE as Mock DonadoresYEntidades
-    participant DON as Mock Donaciones
+    participant DE as DonadoresYEntidades HTTP
+    participant DON as Donaciones HTTP
     participant DR as DonadorRepo
     participant D as Donador
 
@@ -95,6 +97,10 @@ sequenceDiagram
     DR-->>F: Donador
     F->>DON: buscarPorDonadorYFechaInicio(donadorID, fecha)
     DON-->>F: lista de Donacion
+    alt mision de Completitud
+        F->>DON: buscarProductoPorID(productoID)
+        DON-->>F: categoria del producto
+    end
     F->>F: extraerDatosParaMision + estaCumplida
     alt mision cumplida
         F->>D: agregarInsignia + avanzarCategoria

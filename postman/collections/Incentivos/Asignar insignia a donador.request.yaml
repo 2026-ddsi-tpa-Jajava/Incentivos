@@ -1,0 +1,12 @@
+$kind: http-request
+method: POST
+url: "{{baseUrl}}/insignias/{{donadorID}}"
+description: Asignar insignia a un donador
+pathVariables:
+  donadorID: "{{donadorID}}"
+body:
+  type: json
+  content: |-
+    {
+      "insigniaID": "ins-1"
+    }

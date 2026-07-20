@@ -11,7 +11,7 @@ body:
     {
       "id": null,
       "nombre": "Primera Misión",
-      "insigniaID": "{{insigniaId}}",
+      "insigniaID": "ins-1",
       "categoriaInicio": "OCASIONAL",
       "categoriaFin": "COLABORADOR",
       "tipo": "DONACIONES_EXITOSAS"
