@@ -5,6 +5,8 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +34,9 @@ import ar.edu.utn.dds.k3003.repositories.MisionRepo;
 
 @Service
 public class Fachada implements FachadaIncentivos {
+
+    private static final Logger log = LoggerFactory.getLogger(Fachada.class);
+    private static final LocalDate FECHA_INICIO_HISTORICA = LocalDate.of(2000, 1, 1);
 
     private final DonadorRepo donadorRepo;
     private final MisionRepo misionRepo;
@@ -189,40 +194,102 @@ public class Fachada implements FachadaIncentivos {
 
     @Override
     public void procesarDonador(String donadorID) {
+        log.info("[INCENTIVOS] Inicio procesamiento donador={}", donadorID);
         verificarExistenciaExterna(donadorID);
 
         Donador donador = obtenerOCrearDonador(donadorID);
         Mision misionActual = donador.getMisionActual();
 
-        if (misionActual == null || fachadaDonaciones == null) {
+        if (fachadaDonaciones == null) {
+            log.warn("[INCENTIVOS] No hay fachadaDonaciones configurada. Se omite procesamiento donador={}", donadorID);
             return;
         }
 
         List<DonacionDTO> donaciones = fachadaDonaciones
-                .buscarPorDonadorYFechaInicio(donadorID, LocalDate.of(2000, 1, 1));
+                .buscarPorDonadorYFechaInicio(donadorID, FECHA_INICIO_HISTORICA);
+        log.info("[INCENTIVOS] Donaciones recuperadas donador={} cantidad={}", donadorID, donaciones.size());
 
+        if (misionActual != null) {
+            evaluarMisionEnCurso(donador, misionActual, donaciones);
+        } else {
+            log.info("[INCENTIVOS] El donador={} no tiene misión en curso", donadorID);
+        }
+
+        evaluarPerdidaDeProgresoEnDonacionesExitosas(donador, donaciones);
+        log.info("[INCENTIVOS] Fin procesamiento donador={}", donadorID);
+    }
+
+    private void evaluarMisionEnCurso(Donador donador, Mision misionActual, List<DonacionDTO> donaciones) {
+        String donadorID = donador.getDonadorID();
         List<String> datosEvaluacion = extraerDatosParaMision(misionActual, donaciones);
+        boolean misionCumplida = misionActual.estaCumplida(datosEvaluacion);
+        log.info("[INCENTIVOS] Evaluación misión donador={} mision={} tipo={} cumplida={}",
+                donadorID, misionActual.getMisionID(), misionActual.getTipo(), misionCumplida);
 
-        if (misionActual.estaCumplida(datosEvaluacion)) {
+        if (!misionCumplida) {
+            return;
+        }
+
+        if (misionActual.getInsigniaID() != null && !donador.tieneInsignia(misionActual.getInsigniaID())) {
             try {
                 Insignia insignia = insigniaRepo.findById(misionActual.getInsigniaID())
                         .orElseThrow(() -> new EntidadNoEncontradaException(""));
                 donador.agregarInsignia(insignia);
+                log.info("[INCENTIVOS] Insignia asignada por misión cumplida donador={} insignia={}",
+                        donadorID, insignia.getInsigniaID());
             } catch (EntidadNoEncontradaException e) {
-                // Ignora insignia faltante en repo local.
+                log.warn("[INCENTIVOS] No se encontró insignia={} de misión={} para donador={}",
+                        misionActual.getInsigniaID(), misionActual.getMisionID(), donadorID);
+            }
+        }
+
+        CategoriaDonadorEnum nuevaCategoria = misionActual.getCategoriaFin();
+        Mision siguienteMision = buscarMisionParaCategoria(nuevaCategoria);
+        donador.avanzarCategoria(nuevaCategoria, siguienteMision);
+        sincronizarCategoriaExterna(donadorID, nuevaCategoria);
+        donadorRepo.save(donador);
+        log.info("[INCENTIVOS] Donador avanzado de categoría donador={} nuevaCategoria={} siguienteMision={}",
+                donadorID, nuevaCategoria, siguienteMision != null ? siguienteMision.getMisionID() : null);
+    }
+
+    private void evaluarPerdidaDeProgresoEnDonacionesExitosas(Donador donador, List<DonacionDTO> donaciones) {
+        String donadorID = donador.getDonadorID();
+        List<String> estadosDonaciones = donaciones.stream().map(donacion -> donacion.estado().name()).toList();
+        List<Mision> misionesDonacionesExitosas = misionRepo.findAll().stream()
+                .filter(mision -> TipoMisionEnum.DONACIONES_EXITOSAS.equals(mision.getTipo()))
+                .toList();
+
+        for (Mision mision : misionesDonacionesExitosas) {
+            if (!donador.tieneInsignia(mision.getInsigniaID())) {
+                continue;
+            }
+            if (mision.estaCumplida(estadosDonaciones)) {
+                continue;
             }
 
-            CategoriaDonadorEnum nuevaCategoria = misionActual.getCategoriaFin();
-            Mision siguienteMision = buscarMisionParaCategoria(nuevaCategoria);
-            donador.avanzarCategoria(nuevaCategoria, siguienteMision);
+            log.warn("[INCENTIVOS] Se detectó pérdida de progreso donador={} misión={} categoriaActual={}",
+                    donadorID, mision.getMisionID(), donador.getCategoria());
+            donador.removerInsigniaPorID(mision.getInsigniaID());
+            donador.retrocederCategoria(
+                    mision.getCategoriaInicio(),
+                    mision,
+                    "Retroceso por pérdida de progreso en misión " + mision.getNombre());
+            sincronizarCategoriaExterna(donadorID, mision.getCategoriaInicio());
+            donadorRepo.save(donador);
+            log.warn("[INCENTIVOS] Rollback aplicado donador={} categoriaNueva={} misiónReasignada={}",
+                    donadorID, mision.getCategoriaInicio(), mision.getMisionID());
+            return;
+        }
+    }
 
-            try {
-                fachadaDonadoresYEntidades.modifcarCategoria(donadorID, nuevaCategoria.name());
-            } catch (RuntimeException e) {
-                // Si la sincronizacion externa falla, preservamos el avance local para no bloquear incentivos.
-            }
-
-            donadorRepo.save(donador); 
+    private void sincronizarCategoriaExterna(String donadorID, CategoriaDonadorEnum categoria) {
+        try {
+            fachadaDonadoresYEntidades.modifcarCategoria(donadorID, categoria.name());
+            log.info("[INCENTIVOS] Categoría sincronizada con Donadores y Entidades donador={} categoria={}",
+                    donadorID, categoria);
+        } catch (RuntimeException e) {
+            log.warn("[INCENTIVOS] Falló sincronización externa donador={} categoria={}. Se conserva cambio local.",
+                    donadorID, categoria, e);
         }
     }
 
