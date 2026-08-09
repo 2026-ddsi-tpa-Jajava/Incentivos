@@ -53,11 +53,26 @@ public class Donador {
 
     public void agregarInsignia(Insignia insignia) { this.insignias.add(insignia); }
 
+    public boolean tieneInsignia(String insigniaID) {
+        return insignias.stream().anyMatch(insignia -> insignia.getInsigniaID().equals(insigniaID));
+    }
+
+    public void removerInsigniaPorID(String insigniaID) {
+        insignias.removeIf(insignia -> insignia.getInsigniaID().equals(insigniaID));
+    }
+
     public void avanzarCategoria(CategoriaDonadorEnum nuevaCategoria, Mision nuevaMision) {
         CategoriaDonadorEnum anterior = this.categoria;
         this.categoria = nuevaCategoria;
         this.misionActual = nuevaMision;
         registrarCambioCategoria(anterior, nuevaCategoria, "Avance por mision");
+    }
+
+    public void retrocederCategoria(CategoriaDonadorEnum nuevaCategoria, Mision nuevaMision, String motivo) {
+        CategoriaDonadorEnum anterior = this.categoria;
+        this.categoria = nuevaCategoria;
+        this.misionActual = nuevaMision;
+        registrarCambioCategoria(anterior, nuevaCategoria, motivo);
     }
 
     public String getDonadorID() { return donadorID; }
