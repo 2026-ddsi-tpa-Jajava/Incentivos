@@ -31,6 +31,7 @@
 - `DB_DRIVER`
 - `DB_DIALECT`
 - `DD_API_KEY`
+- `INCENTIVOS_PROCESAMIENTO_INTERVALO_MS`
 
 ---
 
@@ -40,3 +41,13 @@
 - `DONACIONES_ASCENDENTES`: últimas 5 donaciones en tendencia ascendente.
 - `REVOLUCION_DONADORA`: más de 10 donaciones con cantidad mayor a 50.
 
+---
+
+🧩 Procesamiento periódico de misiones
+- Se incorporó un cron-job que procesa automáticamente a los donadores con misión asignada.
+- Intervalo configurable con `INCENTIVOS_PROCESAMIENTO_INTERVALO_MS` (por defecto: `60000` ms).
+- Si un donador pierde la condición de la misión **Donaciones Exitosas** (menos de 20 `ACEPTADA`), se aplica rollback:
+  - se remueve la insignia de esa misión,
+  - se retrocede de categoría,
+  - se reasigna la misión para recomenzar el progreso.
+- Se agregaron logs de trazabilidad del flujo de procesamiento y del cron para facilitar diagnóstico.
