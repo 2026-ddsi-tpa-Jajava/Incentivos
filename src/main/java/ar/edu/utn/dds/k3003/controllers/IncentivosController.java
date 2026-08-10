@@ -108,7 +108,13 @@ public ResponseEntity<?> buscarInsigniaODonador(@PathVariable("parametro") Strin
         misionesCreadas.increment();
         return ResponseEntity.status(HttpStatus.CREATED).body(fachada.agregarMision(misionDTO));
     }
-
+    
+    @GetMapping("/misiones")
+    public ResponseEntity<?> listarMisiones() {
+        // Asumiendo que tu interfaz Fachada tiene el método getMisiones()
+        // (igual que tenés fachada.getInsignias() en la línea 61)
+        return ResponseEntity.ok(fachada.getMisiones());
+    }
     @PostMapping("/misiones/{donadorID}")
     public ResponseEntity<Void> asignarMisionADonador(
         @PathVariable("donadorID") String donadorID,
