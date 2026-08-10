@@ -1,5 +1,12 @@
+owner: "54176784"
+team: "15289606"
+lastUpdatedBy: "54176784"
+lastRevision: 1784572842000
 name: Local
+color: null
 values:
   - key: baseUrl
+    value: ""
     enabled: true
-    value: ''
+createdAt: 2026-06-13T02:56:59.000Z
+updatedAt: 2026-07-20T18:40:42.000Z

@@ -1,6 +1,4 @@
 $kind: collection
-name: Incentivos
-description: 'Colección de endpoints del servicio de Incentivos (UTN DDS k3003)'
+description: Colección de endpoints del servicio de Incentivos (UTN DDS k3003)
 variables:
-  - key: baseUrl
-    value: 'http://localhost:8080'
+  baseUrl: http://localhost:8080

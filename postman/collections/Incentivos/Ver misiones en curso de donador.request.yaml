@@ -1,0 +1,7 @@
+$kind: http-request
+description: Obtener misión en curso de un donador
+url: "{{baseUrl}}/misiones/{{donadorID}}"
+method: GET
+pathVariables:
+  donadorID: "{{donadorID}}"
+order: 5000
