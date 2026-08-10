@@ -244,12 +244,11 @@ public class Fachada implements FachadaIncentivos {
         }
 
         CategoriaDonadorEnum nuevaCategoria = misionActual.getCategoriaFin();
-        Mision siguienteMision = buscarMisionParaCategoria(nuevaCategoria);
-        donador.avanzarCategoria(nuevaCategoria, siguienteMision);
+        donador.avanzarCategoria(nuevaCategoria, null);
         sincronizarCategoriaExterna(donadorID, nuevaCategoria);
         donadorRepo.save(donador);
-        log.info("[INCENTIVOS] Donador avanzado de categoría donador={} nuevaCategoria={} siguienteMision={}",
-                donadorID, nuevaCategoria, siguienteMision != null ? siguienteMision.getMisionID() : null);
+        log.info("[INCENTIVOS] Donador avanzado de categoría donador={} nuevaCategoria={} misionActual={}",
+                donadorID, nuevaCategoria, null);
     }
 
     private void evaluarPerdidaDeProgresoEnDonacionesExitosas(Donador donador, List<DonacionDTO> donaciones) {
@@ -317,13 +316,6 @@ public class Fachada implements FachadaIncentivos {
             case DONACIONES_ASCENDENTES, REVOLUCION_DONADORA ->
                     donaciones.stream().map(d -> String.valueOf(d.cantidad())).collect(Collectors.toList());
         };
-    }
-
-    private Mision buscarMisionParaCategoria(CategoriaDonadorEnum categoria) {
-        return misionRepo.findAll().stream()
-                .filter(m -> m.getCategoriaInicio().equals(categoria))
-                .findFirst()
-                .orElse(null);
     }
 
     private InsigniaDTO toInsigniaDTO(Insignia insignia) {
