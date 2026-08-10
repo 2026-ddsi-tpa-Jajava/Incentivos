@@ -20,6 +20,7 @@ scripts:
 
       pm.globals.set(\"pasoActual\", pasoActual + 1);\r
 
-      console.log(\"Misión creada con éxito. Siguiente paso configurado: \" + (pasoActual + 1));"
+      console.log(\"Misión creada con éxito. Siguiente paso configurado: \" +
+      (pasoActual + 1));"
     language: text/javascript
-order: 9000
+order: 5000

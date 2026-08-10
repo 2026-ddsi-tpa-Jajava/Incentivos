@@ -4,3 +4,4 @@ url: "{{baseUrl}}/insignias/{{donadorID}}"
 description: Obtener insignias de un donador
 pathVariables:
   donadorID: "{{donadorID}}"
+order: 15000

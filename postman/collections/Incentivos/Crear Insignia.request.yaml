@@ -21,7 +21,8 @@ scripts:
 
       \    insigniaNom: \"Insignia de Completitud\",\r
 
-      \    insigniaDesc: \"Otorgada por diversificar la ayuda donando en tres categorías distintas de productos.\",\r
+      \    insigniaDesc: \"Otorgada por diversificar la ayuda donando en tres
+      categorías distintas de productos.\",\r
 
       \    misionNom: \"Misión Completitud\",\r
 
@@ -37,7 +38,8 @@ scripts:
 
       \    insigniaNom: \"Insignia de Donaciones Exitosas\",\r
 
-      \    insigniaDesc: \"Otorgada por alcanzar un historial de 20 donaciones entregadas de manera impecable.\",\r
+      \    insigniaDesc: \"Otorgada por alcanzar un historial de 20 donaciones
+      entregadas de manera impecable.\",\r
 
       \    misionNom: \"Misión Donaciones Exitosas\",\r
 
@@ -53,7 +55,8 @@ scripts:
 
       \    insigniaNom: \"Insignia de Donaciones Ascendentes\",\r
 
-      \    insigniaDesc: \"Otorgada por mantener una tendencia ascendente en la cantidad de productos en las últimas 5 donaciones.\",\r
+      \    insigniaDesc: \"Otorgada por mantener una tendencia ascendente en la
+      cantidad de productos en las últimas 5 donaciones.\",\r
 
       \    misionNom: \"Misión Donaciones Ascendentes\",\r
 
@@ -69,7 +72,8 @@ scripts:
 
       \    insigniaNom: \"Insignia de Revolución Donadora\",\r
 
-      \    insigniaDesc: \"Otorgada a los pilares de la organización por realizar más de 10 donaciones de gran volumen.\",\r
+      \    insigniaDesc: \"Otorgada a los pilares de la organización por
+      realizar más de 10 donaciones de gran volumen.\",\r
 
       \    misionNom: \"Misión Revolución Donadora (desde Transformador)\",\r
 
@@ -83,9 +87,11 @@ scripts:
 
       \  {\r
 
-      \    insigniaNom: \"Insignia de Revolución Donadora\", // Para mantener la simplicidad de 1 y 1, creamos la instancia\r
+      \    insigniaNom: \"Insignia de Revolución Donadora\", // Para mantener la
+      simplicidad de 1 y 1, creamos la instancia\r
 
-      \    insigniaDesc: \"Otorgada a los pilares de la organización por realizar más de 10 donaciones de gran volumen.\",\r
+      \    insigniaDesc: \"Otorgada a los pilares de la organización por
+      realizar más de 10 donaciones de gran volumen.\",\r
 
       \    misionNom: \"Misión Revolución Donadora (desde Salvador)\",\r
 
@@ -129,7 +135,8 @@ scripts:
 
       \r
 
-      // 4. Dejamos preparadas en memoria las variables para la Misión que vendrá después\r
+      // 4. Dejamos preparadas en memoria las variables para la Misión que
+      vendrá después\r
 
       pm.globals.set(\"mision_nombre\", filaActual.misionNom);\r
 
@@ -152,8 +159,9 @@ scripts:
 
       \    pm.globals.set(\"insigniaId\", respuesta.id);\r
 
-      \    console.log(\"Se cargaron datos para el paso: \" + pm.globals.get(\"pasoActual\"));\r
+      \    console.log(\"Se cargaron datos para el paso: \" +
+      pm.globals.get(\"pasoActual\"));\r
 
       }"
     language: text/javascript
-order: 6000
+order: 2000

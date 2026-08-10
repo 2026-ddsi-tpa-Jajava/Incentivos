@@ -2,7 +2,7 @@ $kind: http-request
 name: Crear Mision
 method: POST
 url: "{{baseUrl}}/misiones"
-order: 5000
+order: 1000
 headers:
   Content-Type: application/json
 body:

@@ -1,0 +1,4 @@
+$kind: http-request
+url: "{{baseUrl}}/misiones"
+method: GET
+order: 8329
