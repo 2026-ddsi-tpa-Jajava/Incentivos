@@ -1,6 +1,7 @@
 package ar.edu.utn.dds.k3003.model;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -8,14 +9,14 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import org.mockito.Mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 
 import ar.edu.utn.dds.k3003.Fachada;
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
@@ -29,38 +30,37 @@ import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
+import ar.edu.utn.dds.k3003.dominio.Donador;
 import ar.edu.utn.dds.k3003.exceptions.DonadorNoEncontradoException;
 import ar.edu.utn.dds.k3003.exceptions.EntidadNoEncontradaException;
 
-@ExtendWith(MockitoExtension.class)
+@SpringBootTest(classes = ar.edu.utn.dds.k3003.app.Application.class)
 class FachadaIncentivosTest {
 
+    @Autowired
     private Fachada fachada;
 
-    @Mock
+    @SuppressWarnings("removal")
+    @MockBean
     private FachadaDonadoresYEntidades fachadaDonadoresYEntidades;
 
-    @Mock
+    @SuppressWarnings("removal")
+    @MockBean
     private FachadaDonaciones fachadaDonaciones;
 
+    @SuppressWarnings("unused")
     @BeforeEach
     void setUp() {
-        fachada = new Fachada();
+        // Limpiamos la base de datos de test antes de cada prueba para que no choquen entre sí
+        fachada.limpiarTodo(); 
         fachada.setFachadaDonadoresYEntidades(fachadaDonadoresYEntidades);
         fachada.setFachadaDonaciones(fachadaDonaciones);
     }
 
     private DonadorDTO donadorValido(String donadorId) {
         return new DonadorDTO(
-            donadorId,
-            "Nombre",
-            "Apellido",
-            20,
-            "mail@x.com",
-            "123",
-            "Dir",
-            EstadoDonadorEnum.VERIFICADO,
-            "OCASIONAL"
+            donadorId, "Nombre", "Apellido", 20, "mail@x.com", "123", "Dir",
+            EstadoDonadorEnum.VERIFICADO, "OCASIONAL"
         );
     }
 
@@ -71,12 +71,8 @@ class FachadaIncentivosTest {
 
         InsigniaDTO insignia = fachada.agregarInsignia(new InsigniaDTO(null, "Ins", "Desc"));
         MisionDTO mision = fachada.agregarMision(new MisionDTO(
-                null,
-                "Completitud",
-                insignia.id(),
-                CategoriaDonadorEnum.OCASIONAL,
-            CategoriaDonadorEnum.COLABORADOR,
-            TipoMisionEnum.COMPLETITUD));
+                null, "Completitud", insignia.id(), CategoriaDonadorEnum.OCASIONAL,
+            CategoriaDonadorEnum.COLABORADOR, TipoMisionEnum.COMPLETITUD));
 
         fachada.asignarInsigniaADonador(donadorId, insignia);
         fachada.asignarMisionADonador(donadorId, mision);
@@ -105,12 +101,8 @@ class FachadaIncentivosTest {
 
         InsigniaDTO insignia = fachada.agregarInsignia(new InsigniaDTO(null, "Ins C", "Desc C"));
         MisionDTO mision = fachada.agregarMision(new MisionDTO(
-            null,
-            "Completitud",
-            insignia.id(),
-            CategoriaDonadorEnum.OCASIONAL,
-            CategoriaDonadorEnum.COLABORADOR,
-            TipoMisionEnum.COMPLETITUD
+            null, "Completitud", insignia.id(), CategoriaDonadorEnum.OCASIONAL,
+            CategoriaDonadorEnum.COLABORADOR, TipoMisionEnum.COMPLETITUD
         ));
 
         fachada.asignarMisionADonador(donadorId, mision);
@@ -122,12 +114,9 @@ class FachadaIncentivosTest {
         );
 
         when(fachadaDonaciones.buscarPorDonadorYFechaInicio(anyString(), any())).thenReturn(donaciones);
-        when(fachadaDonaciones.buscarProductoPorID("p1"))
-            .thenReturn(new ProductoDTO("p1", "Prod1", "Desc", "cat-a", "id-a"));
-        when(fachadaDonaciones.buscarProductoPorID("p2"))
-            .thenReturn(new ProductoDTO("p2", "Prod2", "Desc", "cat-b", "id-b"));
-        when(fachadaDonaciones.buscarProductoPorID("p3"))
-            .thenReturn(new ProductoDTO("p3", "Prod3", "Desc", "cat-c", "id-c"));
+        when(fachadaDonaciones.buscarProductoPorID("p1")).thenReturn(new ProductoDTO("p1", "Prod1", "Desc", "cat-a", "id-a"));
+        when(fachadaDonaciones.buscarProductoPorID("p2")).thenReturn(new ProductoDTO("p2", "Prod2", "Desc", "cat-b", "id-b"));
+        when(fachadaDonaciones.buscarProductoPorID("p3")).thenReturn(new ProductoDTO("p3", "Prod3", "Desc", "cat-c", "id-c"));
 
         fachada.procesarDonador(donadorId);
 
@@ -145,16 +134,13 @@ class FachadaIncentivosTest {
 
         InsigniaDTO insignia = fachada.agregarInsignia(new InsigniaDTO(null, "Ins X", "Desc X"));
         MisionDTO mision = fachada.agregarMision(new MisionDTO(
-            null,
-            "Donaciones Exitosas",
-            insignia.id(),
-            CategoriaDonadorEnum.COLABORADOR,
-            CategoriaDonadorEnum.TRANSFORMADOR,
-            TipoMisionEnum.DONACIONES_EXITOSAS
+            null, "Donaciones Exitosas", insignia.id(), CategoriaDonadorEnum.COLABORADOR,
+            CategoriaDonadorEnum.TRANSFORMADOR, TipoMisionEnum.DONACIONES_EXITOSAS
         ));
         fachada.asignarMisionADonador(donadorId, mision);
 
-        assertThrows(EntidadNoEncontradaException.class, () -> fachada.getInsigniasDeDonador(donadorId));
+        Throwable insigniasError = assertThrows(EntidadNoEncontradaException.class, () -> fachada.getInsigniasDeDonador(donadorId));
+        assertNotNull(insigniasError);
     }
 
     @Test
@@ -168,5 +154,89 @@ class FachadaIncentivosTest {
         Throwable error = assertThrows(EntidadNoEncontradaException.class,
             () -> fachada.getMisionEnCursoDeDonador(donadorId));
         assertTrue(error.getMessage().contains("mision"));
+    }
+
+    @Test
+    void procesarDonadorConVeinteDonacionesExitosasAvanzaCategoriaYSincroniza() {
+        String donadorId = "d-20-exitosas";
+        when(fachadaDonadoresYEntidades.buscarDonadorPorID(donadorId)).thenReturn(donadorValido(donadorId));
+
+        InsigniaDTO insignia = fachada.agregarInsignia(new InsigniaDTO(null, "Ins 20", "Desc 20"));
+        MisionDTO mision = fachada.agregarMision(new MisionDTO(
+            null, "20 exitosas", insignia.id(), CategoriaDonadorEnum.OCASIONAL,
+            CategoriaDonadorEnum.COLABORADOR, TipoMisionEnum.DONACIONES_EXITOSAS
+        ));
+
+        fachada.asignarMisionADonador(donadorId, mision);
+
+        List<DonacionDTO> donaciones = IntStream.rangeClosed(1, 20)
+            .mapToObj(i -> new DonacionDTO("d" + i, donadorId, "dep", "x", "p" + i, i, EstadoDonacionEnum.ACEPTADA))
+            .toList();
+        when(fachadaDonaciones.buscarPorDonadorYFechaInicio(anyString(), any())).thenReturn(donaciones);
+
+        fachada.procesarDonador(donadorId);
+
+        assertEquals(1, fachada.getInsigniasDeDonador(donadorId).size());
+        Throwable misionError = assertThrows(EntidadNoEncontradaException.class, () -> fachada.getMisionEnCursoDeDonador(donadorId));
+        assertNotNull(misionError);
+        verify(fachadaDonadoresYEntidades, times(1)).modifcarCategoria(donadorId, CategoriaDonadorEnum.COLABORADOR.name());
+    }
+
+    @Test
+    void procesarDonadorConOnceDonacionesMayoresA50AvanzaARevolucionario() {
+        String donadorId = "d-revolucion";
+        when(fachadaDonadoresYEntidades.buscarDonadorPorID(donadorId)).thenReturn(donadorValido(donadorId));
+
+        InsigniaDTO insignia = fachada.agregarInsignia(new InsigniaDTO(null, "Ins Rev", "Desc Rev"));
+        MisionDTO mision = fachada.agregarMision(new MisionDTO(
+            null, "Revolucion", insignia.id(), CategoriaDonadorEnum.TRANSFORMADOR,
+            CategoriaDonadorEnum.REVOLUCIONARIO, TipoMisionEnum.REVOLUCION_DONADORA
+        ));
+
+        fachada.asignarMisionADonador(donadorId, mision);
+
+        List<DonacionDTO> donaciones = IntStream.rangeClosed(1, 11)
+            .mapToObj(i -> new DonacionDTO("r" + i, donadorId, "dep", "x", "p" + i, 51, EstadoDonacionEnum.ACEPTADA))
+            .toList();
+        when(fachadaDonaciones.buscarPorDonadorYFechaInicio(anyString(), any())).thenReturn(donaciones);
+
+        fachada.procesarDonador(donadorId);
+
+        verify(fachadaDonadoresYEntidades, times(1)).modifcarCategoria(donadorId, CategoriaDonadorEnum.REVOLUCIONARIO.name());
+        assertEquals(1, fachada.getInsigniasDeDonador(donadorId).size());
+    }
+
+    @Test
+    void procesarDonadorPierdeProgresoEnDonacionesExitosasYRetrocedeCategoria() {
+        String donadorId = "d-retroceso";
+        when(fachadaDonadoresYEntidades.buscarDonadorPorID(donadorId)).thenReturn(donadorValido(donadorId));
+
+        InsigniaDTO insignia = fachada.agregarInsignia(new InsigniaDTO(null, "Ins rollback", "Desc rollback"));
+        MisionDTO mision = fachada.agregarMision(new MisionDTO(
+            null, "20 exitosas", insignia.id(), CategoriaDonadorEnum.OCASIONAL,
+            CategoriaDonadorEnum.COLABORADOR, TipoMisionEnum.DONACIONES_EXITOSAS
+        ));
+        fachada.asignarMisionADonador(donadorId, mision);
+
+        List<DonacionDTO> veinteAceptadas = IntStream.rangeClosed(1, 20)
+            .mapToObj(i -> new DonacionDTO("ok-" + i, donadorId, "dep", "x", "p" + i, i, EstadoDonacionEnum.ACEPTADA))
+            .toList();
+        List<DonacionDTO> diecinueveAceptadas = IntStream.rangeClosed(1, 20)
+            .mapToObj(i -> new DonacionDTO("ko-" + i, donadorId, "dep", "x", "p" + i, i,
+                i <= 19 ? EstadoDonacionEnum.ACEPTADA : EstadoDonacionEnum.CONQUEJA))
+            .toList();
+        when(fachadaDonaciones.buscarPorDonadorYFechaInicio(anyString(), any()))
+            .thenReturn(veinteAceptadas)
+            .thenReturn(diecinueveAceptadas);
+
+        fachada.procesarDonador(donadorId);
+        fachada.procesarDonador(donadorId);
+
+        Donador estado = fachada.getEstadoDonadorLocal(donadorId);
+        assertEquals(CategoriaDonadorEnum.OCASIONAL, estado.getCategoria());
+        assertEquals(mision.id(), estado.getMisionActual().getMisionID());
+        assertThrows(EntidadNoEncontradaException.class, () -> fachada.getInsigniasDeDonador(donadorId));
+        verify(fachadaDonadoresYEntidades, times(1)).modifcarCategoria(donadorId, CategoriaDonadorEnum.COLABORADOR.name());
+        verify(fachadaDonadoresYEntidades, times(1)).modifcarCategoria(donadorId, CategoriaDonadorEnum.OCASIONAL.name());
     }
 }

@@ -14,18 +14,56 @@
 🧩 Link al swagger
 - https://app.swaggerhub.com/apis/utn-5df/Incentivos_endpoints/1.0.0
 
-- Swagger UI (app): https://entrega-2-lucianosuarez123-5.onrender.com/swagger-ui/index.html
-
+- Swagger UI (app): https://incentivos-yuse.onrender.com/swagger-ui/index.html 
 ---
 
 🧩 Link al despliegue en Render
--https://entrega-2-lucianosuarez123-5.onrender.com
+-https://incentivos-yuse.onrender.com
 
 ---
 
-### ⚠️ Importante
+🧩 Variables de entorno utilizadas
+- `URL_DONADORES_ENTIDADES`
+- `URL_DONACIONES`
+- `DB_URL`
+- `DB_USERNAME`
+- `DB_PASSWORD`
+- `DB_DRIVER`
+- `DB_DIALECT`
+- `DD_API_KEY`
+- `INCENTIVOS_PROCESAMIENTO_INTERVALO_MS`
+- `TELEGRAM_BOT_ENABLED`
+- `NOMBRE_BOT`
+- `TOKEN_BOT`
 
-**ARCHIVOS PROTEGIDOS:**
+---
 
-> Los archivos de las carpetas "/catedra" y ".github/" están PROTEGIDOS, es decir, **NO PUEDEN MODIFICARLOS**.
-Modificar estos archivos implica desaprobar inmediatamente la instancia de entrega del TPA.
+🧩 Criterios de misiones
+- `COMPLETITUD`: 3 categorías distintas.
+- `DONACIONES_EXITOSAS`: 20 donaciones aceptadas.
+- `DONACIONES_ASCENDENTES`: últimas 5 donaciones en tendencia ascendente.
+- `REVOLUCION_DONADORA`: más de 10 donaciones con cantidad mayor a 50.
+
+---
+
+🧩 Procesamiento periódico de misiones
+- Se incorporó un cron-job que procesa automáticamente a los donadores con misión asignada.
+- Intervalo configurable con `INCENTIVOS_PROCESAMIENTO_INTERVALO_MS` (por defecto: `60000` ms).
+- Si un donador pierde la condición de la misión **Donaciones Exitosas** (menos de 20 `ACEPTADA`), se aplica rollback:
+  - se remueve la insignia de esa misión,
+  - se retrocede de categoría,
+  - se reasigna la misión para recomenzar el progreso.
+- Se agregaron logs de trazabilidad del flujo de procesamiento y del cron para facilitar diagnóstico.
+
+---
+
+🧩 Base Bot de Telegram (Entrega 4)
+- Se agregó la base del bot usando `org.telegram:telegrambots:6.5.0`.
+- El bot se registra automáticamente al iniciar la app **solo si** `TELEGRAM_BOT_ENABLED=true`.
+- Variables requeridas:
+  - `NOMBRE_BOT`
+  - `TOKEN_BOT`
+- Comandos base implementados:
+  - `/start`: muestra menú inicial de tipo de usuario.
+  - `/donador`: selecciona modo donador (base).
+  - `/admin`: selecciona modo admin (base).

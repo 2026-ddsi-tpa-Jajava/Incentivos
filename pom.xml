@@ -47,7 +47,10 @@
       <scope>runtime</scope>
       <optional>true</optional>
     </dependency>
-
+<dependency>
+    <groupId>io.micrometer</groupId>
+    <artifactId>micrometer-registry-datadog</artifactId>
+</dependency>
     <!-- Database -->
     <dependency>
       <groupId>com.h2database</groupId>
@@ -94,6 +97,11 @@
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
       <version>2.5.0</version>
+    </dependency>
+    <dependency>
+      <groupId>org.telegram</groupId>
+      <artifactId>telegrambots</artifactId>
+      <version>6.5.0</version>
     </dependency>
 
   </dependencies>

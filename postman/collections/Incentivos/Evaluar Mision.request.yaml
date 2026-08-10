@@ -1,7 +1,6 @@
 $kind: http-request
-description: Procesar un donador
-url: "{{baseUrl}}/procesamiento/{{donadorID}}"
 method: POST
+url: "{{baseUrl}}/procesamiento/{{donadorID}}"
+description: Procesar un donador
 pathVariables:
   donadorID: "{{donadorID}}"
-order: 3000

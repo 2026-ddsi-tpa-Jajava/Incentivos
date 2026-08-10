@@ -1,4 +1,4 @@
-# Diagrama de Arquitectura – Servicio de Incentivos – Entrega 1
+# Diagrama de Arquitectura – Servicio de Incentivos – Entrega 3
 
 ## Diagrama de Componentes
 
@@ -17,8 +17,8 @@ graph TD
     MC["MisionCompletitud"]
     MD["MisionDonacionesExitosas"]
 
-    FDE["FachadaDonadoresYEntidades\nexterno - simulado con mock"]
-    FD["FachadaDonaciones\nexterno - simulado con mock"]
+    FDE["FachadaDonadoresYEntidadesHttp\ncliente REST"]
+    FD["FachadaDonacionesHttp\ncliente REST"]
 
     C -->|invoca metodos| FI
     FI -->|verifica existencia donador| FDE
@@ -42,28 +42,40 @@ graph TD
 
 ```mermaid
 graph LR
-    subgraph JVM["JVM - proceso unico durante tests"]
-        FACHADA["Fachada\nServicio Incentivos"]
-        MOCK_DE["Mock FachadaDonadoresYEntidades\nMockito"]
-        MOCK_DON["Mock FachadaDonaciones\nMockito"]
-        MEM["Repositorios en memoria\nDonadorRepo - InsigniaRepo - MisionRepo"]
+    subgraph Render["Plataforma Render"]
+        subgraph Docker["Contenedor Docker (App)"]
+            FACHADA["Fachada\nServicio Incentivos"]
+            MEM["Repositorios JPA\nDonadorRepo - InsigniaRepo - MisionRepo"]
+            HTTP_DE["FachadaDonadoresYEntidadesHttp\n(Cliente REST)"]
+            HTTP_DON["FachadaDonacionesHttp\n(Cliente REST)"]
+        end
+        DB[("PostgreSQL\n(Instancia Render)")]
     end
 
-    FACHADA -->|setter| MOCK_DE
-    FACHADA -->|setter| MOCK_DON
-    FACHADA --> MEM
-```
+    subgraph API_Companeros["Otros Microservicios"]
+        API_DE["API Donadores y Entidades"]
+        API_DON["API Donaciones"]
+    end
 
-> No hay base de datos ni persistencia en disco. Los repos usan listas en memoria siguiendo el patron Repository. Se reemplazara con persistencia real en entregas posteriores.
+    FACHADA --> MEM
+    MEM -->|Persistencia ORM| DB
+    FACHADA --> HTTP_DE
+    FACHADA --> HTTP_DON
+    HTTP_DE -->|HTTP/REST| API_DE
+    HTTP_DON -->|HTTP/REST| API_DON
+```
+> Nota de Arquitectura: En esta entrega se migró la persistencia en memoria hacia una base de datos relacional PostgreSQL desplegada en Render, utilizando Spring Data JPA como ORM. Además, las integraciones simuladas fueron reemplazadas por clientes HTTP (utilizando HttpClient nativo de Java 11+) para comunicarse de forma sincrónica con las APIs reales del resto del equipo.
 
 ---
 
-## Interacciones simuladas
+## Interacciones externas reales
 
 | Origen | Destino | Operacion | Como se simula |
 |---|---|---|---|
-| Incentivos | Donadores y Entidades | buscarDonadorPorID | Mock Mockito |
-| Incentivos | Donaciones | buscarPorDonadorYFechaInicio | Mock Mockito |
+| Incentivos | Donadores y Entidades | buscarDonadorPorID | HTTP GET |
+| Incentivos | Donadores y Entidades | modifcarCategoria | HTTP PATCH |
+| Incentivos | Donaciones | buscarPorDonadorYFechaInicio | HTTP GET |
+| Incentivos | Donaciones | buscarProductoPorID | HTTP GET |
 
 ---
 
@@ -73,8 +85,8 @@ graph LR
 sequenceDiagram
     actor Cron
     participant F as Fachada Incentivos
-    participant DE as Mock DonadoresYEntidades
-    participant DON as Mock Donaciones
+    participant DE as DonadoresYEntidades HTTP
+    participant DON as Donaciones HTTP
     participant DR as DonadorRepo
     participant D as Donador
 
@@ -85,6 +97,10 @@ sequenceDiagram
     DR-->>F: Donador
     F->>DON: buscarPorDonadorYFechaInicio(donadorID, fecha)
     DON-->>F: lista de Donacion
+    alt mision de Completitud
+        F->>DON: buscarProductoPorID(productoID)
+        DON-->>F: categoria del producto
+    end
     F->>F: extraerDatosParaMision + estaCumplida
     alt mision cumplida
         F->>D: agregarInsignia + avanzarCategoria
