@@ -11,3 +11,6 @@ cloudResources:
     ../postman/environments/local.environment.yaml: 54176784-24b0bd63-22cd-4b6a-991b-1e8ecccd1bfe
   specs:
     ../docs/api-spec-incentivos.yaml: f013d0d9-f118-4342-86c8-6a56a71b0de1
+resourceNameMappings:
+  specs:
+    - ../docs/api-spec-incentivos.yaml: api-spec-incentivos.yaml

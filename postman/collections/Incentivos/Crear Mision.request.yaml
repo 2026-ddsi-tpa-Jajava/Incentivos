@@ -1,16 +1,6 @@
 $kind: http-request
-name: Crear Mision
-method: POST
 url: "{{baseUrl}}/misiones"
-scripts:
-  - type: afterResponse
-    code: "let pasoActual = parseInt(pm.globals.get(\"pasoActual\")) || 0;\r
-
-      pm.globals.set(\"pasoActual\", pasoActual + 1);\r
-
-      console.log(\"Misión creada con éxito. Siguiente paso configurado: \" + (pasoActual + 1));"
-    language: text/javascript
-order: 5000
+method: POST
 headers:
   Content-Type: application/json
 body:
@@ -24,3 +14,12 @@ body:
       "categoriaFin": "{{mision_cat_fin}}",
       "tipo": "{{mision_tipo}}"
     }
+scripts:
+  - type: afterResponse
+    code: "let pasoActual = parseInt(pm.globals.get(\"pasoActual\")) || 0;\r
+
+      pm.globals.set(\"pasoActual\", pasoActual + 1);\r
+
+      console.log(\"Misión creada con éxito. Siguiente paso configurado: \" + (pasoActual + 1));"
+    language: text/javascript
+order: 9000

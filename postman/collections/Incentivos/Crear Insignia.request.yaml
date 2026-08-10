@@ -1,7 +1,16 @@
 $kind: http-request
-name: Crear Insignia
-method: POST
 url: "{{baseUrl}}/insignias"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "id": null,
+      "nombre": "{{insignia_nombre}}",
+      "descripcion": "{{insignia_descripcion}}"
+    }
 scripts:
   - type: beforeRequest
     code: "// 1. El mapa de datos en el orden exacto de tu flujo\r
@@ -147,14 +156,4 @@ scripts:
 
       }"
     language: text/javascript
-order: 2000
-headers:
-  Content-Type: application/json
-body:
-  type: json
-  content: |-
-    {
-      "id": null,
-      "nombre": "{{insignia_nombre}}",
-      "descripcion": "{{insignia_descripcion}}"
-    }
+order: 6000
