@@ -8,19 +8,10 @@ body:
   content: |-
     {
       "id": null,
-      "nombre": "{{mision_nombre}}",
-      "insigniaID": "{{insigniaId}}",
-      "categoriaInicio": "{{mision_cat_inicio}}",
-      "categoriaFin": "{{mision_cat_fin}}",
-      "tipo": "{{mision_tipo}}"
+      "nombre": "Primera Misión",
+      "insigniaID": "ins-1",
+      "categoriaInicio": "OCASIONAL",
+      "categoriaFin": "COLABORADOR",
+      "tipo": "DONACIONES_EXITOSAS"
     }
-scripts:
-  - type: afterResponse
-    code: "let pasoActual = parseInt(pm.globals.get(\"pasoActual\")) || 0;\r
-
-      pm.globals.set(\"pasoActual\", pasoActual + 1);\r
-
-      console.log(\"Misión creada con éxito. Siguiente paso configurado: \" +
-      (pasoActual + 1));"
-    language: text/javascript
-order: 5000
+order: 6000

@@ -1,7 +1,7 @@
 $kind: http-request
-method: GET
-url: "{{baseUrl}}/misiones/{{donadorID}}"
 description: Obtener misión en curso de un donador
+url: "{{baseUrl}}/misiones/{{donadorID}}"
+method: GET
 pathVariables:
   donadorID: "{{donadorID}}"
-order: 16000
+order: 5000

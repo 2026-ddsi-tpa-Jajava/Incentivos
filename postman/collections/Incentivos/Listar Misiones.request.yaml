@@ -1,5 +1,4 @@
 $kind: http-request
-name: Listar Misiones
 url: "{{baseUrl}}/misiones"
 method: GET
-order: 6000
+order: 11000

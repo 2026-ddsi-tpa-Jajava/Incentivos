@@ -1,7 +1,7 @@
 $kind: http-request
-method: GET
-url: "{{baseUrl}}/insignias/{{donadorID}}"
 description: Obtener insignias de un donador
+url: "{{baseUrl}}/insignias/{{donadorID}}"
+method: GET
 pathVariables:
   donadorID: "{{donadorID}}"
-order: 15000
+order: 4000

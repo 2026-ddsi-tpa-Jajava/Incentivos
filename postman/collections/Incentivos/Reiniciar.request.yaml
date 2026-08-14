@@ -1,5 +1,4 @@
 $kind: http-request
-name: Reiniciar
 url: "{{baseUrl}}/reset"
 method: DELETE
-order: 11000
+order: 13000
