@@ -1,4 +1,4 @@
 $kind: http-request
 url: "{{baseUrl}}/reset"
 method: DELETE
-order: 13000
+order: 12000

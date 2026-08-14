@@ -1,4 +1,4 @@
 $kind: http-request
 url: "{{baseUrl}}/insignias/{{insigniaId}}"
 method: GET
-order: 9000
+order: 8000

@@ -1,4 +1,4 @@
 $kind: http-request
 url: "{{baseUrl}}/misiones/{{misionId}}"
 method: GET
-order: 12000
+order: 11000
