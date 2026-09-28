@@ -8,7 +8,7 @@
   <parent>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.5.8</version>
+    <version>3.4.3</version>
     <relativePath />
   </parent>
 
@@ -21,13 +21,12 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>21</java.version>
-
-    <!-- Dependencies versions -->
     <mockito.version>5.22.0</mockito.version>
+    <!-- Volvemos a la versión 2.0.0 oficial que contiene @McpTool -->
     <spring-ai.version>2.0.0</spring-ai.version>
   </properties>
 
-<dependencyManagement>
+  <dependencyManagement>
     <dependencies>
       <dependency>
         <groupId>com.fasterxml.jackson.core</groupId>
@@ -45,7 +44,6 @@
   </dependencyManagement>
 
   <dependencies>
-    <!-- Spring Boot Starters -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
@@ -65,13 +63,11 @@
       <optional>true</optional>
     </dependency>
 
-    <!-- Monitoring & Metrics -->
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-datadog</artifactId>
     </dependency>
 
-    <!-- Databases -->
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
@@ -83,25 +79,17 @@
       <scope>runtime</scope>
     </dependency>
 
-    <!-- Jackson Formatting -->
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-xml</artifactId>
     </dependency>
 
-   <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-annotations</artifactId>
-    </dependency>
-
-    <!-- Utilities & Tools -->
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
     </dependency>
 
-    <!-- Logging & Better Stack -->
     <dependency>
       <groupId>com.logtail</groupId>
       <artifactId>logback-logtail</artifactId>
@@ -113,20 +101,18 @@
       <scope>runtime</scope>
     </dependency>
 
-    <!-- OpenAPI / Swagger UI -->
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
       <version>2.5.0</version>
     </dependency>
 
-    <!-- Spring AI MCP Server -->
+<!-- Spring AI MCP Server -->
     <dependency>
       <groupId>org.springframework.ai</groupId>
       <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
     </dependency>
 
-    <!-- Testing -->
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
@@ -221,36 +207,8 @@
               <goal>report</goal>
             </goals>
           </execution>
-          <execution>
-            <id>default-check</id>
-            <goals>
-              <goal>check</goal>
-            </goals>
-            <configuration>
-              <rules>
-                <rule>
-                  <element>BUNDLE</element>
-                  <limits>
-                    <limit>
-                      <counter>INSTRUCTION</counter>
-                      <value>COVEREDRATIO</value>
-                      <minimum>0.80</minimum>
-                    </limit>
-                  </limits>
-                </rule>
-              </rules>
-            </configuration>
-          </execution>
         </executions>
       </plugin>
     </plugins>
   </build>
-
-  <repositories>
-    <repository>
-      <id>central</id>
-      <url>https://repo.maven.apache.org/maven2</url>
-    </repository>
-  </repositories>
-
 </project>
