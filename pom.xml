@@ -22,26 +22,13 @@
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <java.version>21</java.version>
     <mockito.version>5.22.0</mockito.version>
-    <spring-ai.version>2.0.0</spring-ai.version>
-    
-
-    <jackson-bom.version>2.18.2</jackson-bom.version>
-    <jackson.version>2.18.2</jackson.version>
+    <!-- Dejamos la versión SNAPSHOT oficial de Spring AI -->
+    <spring-ai.version>1.0.0-SNAPSHOT</spring-ai.version>
   </properties>
 
   <dependencyManagement>
     <dependencies>
-
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-annotations</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>com.fasterxml.jackson.core</groupId>
-        <artifactId>jackson-databind</artifactId>
-        <version>${jackson.version}</version>
-      </dependency>
+      <!-- El BOM de Spring AI administra automáticamente sus dependencias -->
       <dependency>
         <groupId>org.springframework.ai</groupId>
         <artifactId>spring-ai-bom</artifactId>
@@ -53,6 +40,7 @@
   </dependencyManagement>
 
   <dependencies>
+    <!-- Spring Boot Starters -->
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-starter-web</artifactId>
@@ -72,11 +60,13 @@
       <optional>true</optional>
     </dependency>
 
+    <!-- Monitoring & Metrics -->
     <dependency>
       <groupId>io.micrometer</groupId>
       <artifactId>micrometer-registry-datadog</artifactId>
     </dependency>
 
+    <!-- Databases -->
     <dependency>
       <groupId>com.h2database</groupId>
       <artifactId>h2</artifactId>
@@ -88,26 +78,18 @@
       <scope>runtime</scope>
     </dependency>
 
+    <!-- Jackson Formatting (Dejamos que Spring Boot defina la versión) -->
     <dependency>
       <groupId>com.fasterxml.jackson.dataformat</groupId>
       <artifactId>jackson-dataformat-xml</artifactId>
     </dependency>
 
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-annotations</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>com.fasterxml.jackson.core</groupId>
-      <artifactId>jackson-databind</artifactId>
-    </dependency>
-
+    <!-- Utilities & Tools -->
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
       <scope>provided</scope>
     </dependency>
-
     <dependency>
       <groupId>com.logtail</groupId>
       <artifactId>logback-logtail</artifactId>
@@ -118,7 +100,6 @@
       <artifactId>janino</artifactId>
       <scope>runtime</scope>
     </dependency>
-
     <dependency>
       <groupId>org.springdoc</groupId>
       <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
@@ -131,6 +112,7 @@
       <artifactId>spring-ai-starter-mcp-server-webmvc</artifactId>
     </dependency>
 
+    <!-- Testing -->
     <dependency>
       <groupId>org.mockito</groupId>
       <artifactId>mockito-core</artifactId>
@@ -229,4 +211,28 @@
       </plugin>
     </plugins>
   </build>
+
+  <repositories>
+    <repository>
+      <id>central</id>
+      <url>https://repo.maven.apache.org/maven2</url>
+    </repository>
+    <repository>
+      <id>spring-milestones</id>
+      <name>Spring Milestones</name>
+      <url>https://repo.spring.io/milestone</url>
+      <snapshots>
+        <enabled>false</enabled>
+      </snapshots>
+    </repository>
+    <repository>
+      <id>spring-snapshots</id>
+      <name>Spring Snapshots</name>
+      <url>https://repo.spring.io/snapshot</url>
+      <snapshots>
+        <enabled>true</enabled>
+      </snapshots>
+    </repository>
+  </repositories>
+
 </project>
