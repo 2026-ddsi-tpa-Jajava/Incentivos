@@ -64,7 +64,7 @@ graph LR
     HTTP_DE -->|HTTP/REST| API_DE
     HTTP_DON -->|HTTP/REST| API_DON
 ```
-> Nota de Arquitectura: En esta entrega se migró la persistencia en memoria hacia una base de datos relacional PostgreSQL desplegada en Render, utilizando Spring Data JPA como ORM. Además, las integraciones simuladas fueron reemplazadas por clientes HTTP (utilizando HttpClient nativo de Java 11+) para comunicarse de forma sincrónica con las APIs reales del resto del equipo.
+> Nota de Arquitectura: La persistencia se realiza en una base de datos relacional PostgreSQL desplegada en Render, utilizando Spring Data JPA como ORM. El componente consume mediante clientes HTTP (utilizando HttpClient nativo de Java 11+) las APIs reales necesarias de Donadores y Entidades y Donaciones.
 
 ---
 

@@ -35,7 +35,7 @@ classDiagram
     class FachadaDonadoresYEntidades {
         <<interface>>
         +buscarDonadorPorID(donadorID) Donador
-        +agregarDonador(donador) Donador
+        +modifcarCategoria(donadorID, categoria) Donador
     }
 
     %% ========== FACHADA (Núcleo) ==========

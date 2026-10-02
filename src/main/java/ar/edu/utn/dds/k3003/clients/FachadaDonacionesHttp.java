@@ -1,12 +1,8 @@
 package ar.edu.utn.dds.k3003.clients;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
-import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.EstadoDonacionEnum;
-import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.IdentificadorDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.ProductoDTO;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
-import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
-import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaLogistica;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.time.LocalDate;
 import java.util.List;
@@ -40,14 +36,4 @@ public List<DonacionDTO> buscarPorDonadorYFechaInicio(String donadorID, LocalDat
         }
     }
 
-    // --- El resto de métodos devuelven null/vacío porque Incentivos no los ejecuta ---
-    @Override public DonacionDTO registrarDonacion(DonacionDTO donacionDTO) { return null; }
-    @Override public DonacionDTO buscarDonacionPorID(String donacionID) { return null; }
-    @Override public DonacionDTO cambiarEstadoDeDonacion(String donacionID, EstadoDonacionEnum estado) { return null; }
-    @Override public DonacionDTO registrarQuejaEnDonacion(String donacionID, String descripcion) { return null; }
-    @Override public ProductoDTO agregarProducto(ProductoDTO productoDTO) { return null; }
-    @Override public IdentificadorDTO agregarIdentificador(IdentificadorDTO identificadorDTO) { return null; }
-    @Override public IdentificadorDTO buscarIdentificadorPorID(String identificadorID) { return null; }
-    @Override public void setFachadaDonadoresYEntidades(FachadaDonadoresYEntidades f) {}
-    @Override public void setFachadaLogistica(FachadaLogistica f) {}
 }
