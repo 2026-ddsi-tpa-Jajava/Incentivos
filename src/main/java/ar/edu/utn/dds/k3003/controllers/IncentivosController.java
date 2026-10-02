@@ -49,11 +49,17 @@ public class IncentivosController {
         this.fachada = fachada;
         this.registry = registry;
         this.insigniasCreadas = Counter.builder("incentivos.insignias.creadas")
-            .description("Insignias creadas").register(registry);
+            .description("Insignias creadas")
+            .tag("componente", "incentivos")
+            .register(registry);
         this.misionesCreadas = Counter.builder("incentivos.misiones.creadas")
-            .description("Misiones creadas").register(registry);
+            .description("Misiones creadas")
+            .tag("componente", "incentivos")
+            .register(registry);
         this.procesarDonadorLlamadas = Counter.builder("incentivos.procesar_donador.llamadas")
-            .description("Llamadas a procesarDonador").register(registry);
+            .description("Llamadas a procesarDonador")
+            .tag("componente", "incentivos")
+            .register(registry);
     }
 
     @GetMapping("/")
@@ -131,6 +137,7 @@ public ResponseEntity<?> buscarInsigniaODonador(@PathVariable("parametro") Strin
         } catch (RuntimeException exception) {
             registry.counter(
                     "incentivos.procesamiento.errores",
+                    "componente", "incentivos",
                     "origen", "api",
                     "operacion", "procesar_donador").increment();
             throw exception;
@@ -187,7 +194,11 @@ public ResponseEntity<?> buscarInsigniaODonador(@PathVariable("parametro") Strin
     }
 
     private void registrarError(String tipo, String recurso) {
-        registry.counter("incentivos.errores", "tipo", tipo, "recurso", recurso).increment();
+        registry.counter(
+                "incentivos.errores",
+                "componente", "incentivos",
+                "tipo", tipo,
+                "recurso", recurso).increment();
     }
 
     private String recursoDe(RuntimeException exception) {

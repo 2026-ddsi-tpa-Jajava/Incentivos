@@ -370,6 +370,7 @@ public class Fachada implements FachadaIncentivos {
     private void registrarErrorIntegracion(String servicio, String operacion) {
         meterRegistry.counter(
                 "incentivos.integraciones.errores",
+                "componente", "incentivos",
                 "servicio", servicio,
                 "operacion", operacion).increment();
     }
@@ -377,6 +378,7 @@ public class Fachada implements FachadaIncentivos {
     private void registrarErrorConfiguracion(String dependencia) {
         meterRegistry.counter(
                 "incentivos.configuracion.errores",
+                "componente", "incentivos",
                 "dependencia", dependencia).increment();
     }
 

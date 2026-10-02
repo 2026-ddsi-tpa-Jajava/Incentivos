@@ -38,6 +38,7 @@ public class MisionProgressCronJob {
             } catch (RuntimeException exception) {
                 meterRegistry.counter(
                         "incentivos.procesamiento.errores",
+                        "componente", "incentivos",
                         "origen", "cron",
                         "operacion", "procesar_donador").increment();
                 log.error("[CRON_INCENTIVOS] Error procesando donador={}", donadorID, exception);
