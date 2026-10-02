@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -125,7 +126,15 @@ public ResponseEntity<?> buscarInsigniaODonador(@PathVariable("parametro") Strin
     @PostMapping("/procesamiento/{donadorID}")
     public ResponseEntity<Void> procesarDonador(@PathVariable("donadorID") String donadorID) {
         procesarDonadorLlamadas.increment();
-        fachada.procesarDonador(donadorID);
+        try {
+            fachada.procesarDonador(donadorID);
+        } catch (RuntimeException exception) {
+            registry.counter(
+                    "incentivos.procesamiento.errores",
+                    "origen", "api",
+                    "operacion", "procesar_donador").increment();
+            throw exception;
+        }
         return ResponseEntity.noContent().build();
     }
 
@@ -158,20 +167,34 @@ public ResponseEntity<?> buscarInsigniaODonador(@PathVariable("parametro") Strin
         EntidadNoEncontradaException.class
     })
     public ResponseEntity<Map<String, String>> handleNotFound(RuntimeException exception) {
-        registrarError("404_NOT_FOUND");
+        registrarError("404_NOT_FOUND", recursoDe(exception));
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", exception.getMessage() != null ? exception.getMessage() : "Recurso no encontrado"));
     }
 
     @org.springframework.web.bind.annotation.ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException exception) {
-        registrarError("400_BAD_REQUEST");
+        registrarError("400_BAD_REQUEST", "solicitud");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", exception.getMessage() != null ? exception.getMessage() : "Petición incorrecta"));
     }
 
-    private void registrarError(String tipo) {
-        registry.counter("incentivos.errores", "tipo", tipo).increment();
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Map<String, String>> handleInternalError(Exception exception) {
+        registrarError("500_INTERNAL_ERROR", "general");
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("error", "Error interno del servicio"));
+    }
+
+    private void registrarError(String tipo, String recurso) {
+        registry.counter("incentivos.errores", "tipo", tipo, "recurso", recurso).increment();
+    }
+
+    private String recursoDe(RuntimeException exception) {
+        if (exception instanceof DonadorNoEncontradoException) {
+            return "donador";
+        }
+        return "entidad";
     }
 
     private CambioCategoriaResponse toCambioCategoriaResponse(CambioCategoria cambio) {

@@ -328,7 +328,7 @@ POST /procesamiento/{donadorID}
 ## Notas Importantes
 
 - La entrega se centra **únicamente** en el componente de Incentivos.
-- No se modificaron archivos en la carpeta `/catedra` protegida.
+- Se conservaron únicamente los contratos DTO y fachadas externos que Incentivos necesita para sus integraciones.
 - Los modelos locales (`Donador`, `Insignia`, `Mision`) ahora **persisten en PostgreSQL** utilizando Spring Data JPA y mapeo de herencia `SINGLE_TABLE`.
 - Las consultas a donadores y donaciones se hacen mediante red (HTTP REST) consumiendo las APIs externas del equipo usando el `HttpClientBuilder`.
-- Se implementaron contadores de métricas mediante Micrometer/Datadog expuestos en el controller.
+- Se implementaron métricas de negocio mediante Micrometer/Datadog: misiones completadas, avances de categoría, rollback, duración y errores de procesamiento, errores HTTP por tipo/recurso, y errores de integración por servicio/operación.

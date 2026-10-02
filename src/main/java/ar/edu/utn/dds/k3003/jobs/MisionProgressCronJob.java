@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import io.micrometer.core.instrument.MeterRegistry;
 
 @Component
 public class MisionProgressCronJob {
@@ -15,10 +16,12 @@ public class MisionProgressCronJob {
     private static final Logger log = LoggerFactory.getLogger(MisionProgressCronJob.class);
     private final DonadorRepo donadorRepo;
     private final Fachada fachada;
+    private final MeterRegistry meterRegistry;
 
-    public MisionProgressCronJob(DonadorRepo donadorRepo, Fachada fachada) {
+    public MisionProgressCronJob(DonadorRepo donadorRepo, Fachada fachada, MeterRegistry meterRegistry) {
         this.donadorRepo = donadorRepo;
         this.fachada = fachada;
+        this.meterRegistry = meterRegistry;
     }
 
     @Scheduled(fixedDelayString = "${incentivos.procesamiento.intervalo-ms:60000}")
@@ -33,6 +36,10 @@ public class MisionProgressCronJob {
                 fachada.procesarDonador(donadorID);
                 log.info("[CRON_INCENTIVOS] Donador procesado correctamente donador={}", donadorID);
             } catch (RuntimeException exception) {
+                meterRegistry.counter(
+                        "incentivos.procesamiento.errores",
+                        "origen", "cron",
+                        "operacion", "procesar_donador").increment();
                 log.error("[CRON_INCENTIVOS] Error procesando donador={}", donadorID, exception);
             }
         }

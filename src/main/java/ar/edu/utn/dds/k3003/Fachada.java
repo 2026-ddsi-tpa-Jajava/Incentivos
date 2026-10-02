@@ -47,7 +47,6 @@ public class Fachada implements FachadaIncentivos {
     private final MeterRegistry meterRegistry;
     private final Counter avancesCategoria;
     private final Counter rollbacks;
-    private final Counter erroresIntegracion;
     private final Timer tiempoProcesamiento;
     private final AtomicLong insigniaSeq = new AtomicLong(1);
     private final AtomicLong misionSeq = new AtomicLong(1);
@@ -72,10 +71,6 @@ public class Fachada implements FachadaIncentivos {
                 .register(meterRegistry);
         this.rollbacks = Counter.builder("incentivos.procesamiento.rollback")
                 .description("Retrocesos por perdida de progreso")
-                .tag("componente", "incentivos")
-                .register(meterRegistry);
-        this.erroresIntegracion = Counter.builder("incentivos.integraciones.errores")
-                .description("Errores al comunicarse con otros servicios")
                 .tag("componente", "incentivos")
                 .register(meterRegistry);
         this.tiempoProcesamiento = Timer.builder("incentivos.procesamiento.duracion")
@@ -218,12 +213,19 @@ public class Fachada implements FachadaIncentivos {
             Mision misionActual = donador.getMisionActual();
 
             if (fachadaDonaciones == null) {
+                registrarErrorConfiguracion("donaciones");
                 log.warn("[INCENTIVOS] No hay fachadaDonaciones configurada. Se omite procesamiento donador={}", donadorID);
                 return;
             }
 
-            List<DonacionDTO> donaciones = fachadaDonaciones
-                    .buscarPorDonadorYFechaInicio(donadorID, FECHA_INICIO_HISTORICA);
+            List<DonacionDTO> donaciones;
+            try {
+                donaciones = fachadaDonaciones
+                        .buscarPorDonadorYFechaInicio(donadorID, FECHA_INICIO_HISTORICA);
+            } catch (RuntimeException exception) {
+                registrarErrorIntegracion("donaciones", "buscar_donaciones");
+                throw exception;
+            }
             log.info("[INCENTIVOS] Donaciones recuperadas donador={} cantidad={}", donadorID, donaciones.size());
 
             if (misionActual != null) {
@@ -316,7 +318,7 @@ public class Fachada implements FachadaIncentivos {
             log.info("[INCENTIVOS] Categoría sincronizada con Donadores y Entidades donador={} categoria={}",
                     donadorID, categoria);
         } catch (RuntimeException e) {
-            erroresIntegracion.increment();
+            registrarErrorIntegracion("donadores_entidades", "modificar_categoria");
             log.warn("[INCENTIVOS] Falló sincronización externa donador={} categoria={}. Se conserva cambio local.",
                     donadorID, categoria, e);
         }
@@ -326,7 +328,7 @@ public class Fachada implements FachadaIncentivos {
         try {
             fachadaDonadoresYEntidades.buscarDonadorPorID(donadorID);
         } catch (RuntimeException e) {
-            erroresIntegracion.increment();
+            registrarErrorIntegracion("donadores_entidades", "buscar_donador");
             throw new DonadorNoEncontradoException("El donador con ID " + donadorID + " no existe en el sistema de Entidades.");
         }
     }
@@ -341,12 +343,34 @@ public class Fachada implements FachadaIncentivos {
     private List<String> extraerDatosParaMision(Mision mision, List<DonacionDTO> donaciones) {
         return switch (mision.getTipo()) {
             case COMPLETITUD -> donaciones.stream()
-                    .map(d -> fachadaDonaciones.buscarProductoPorID(d.productoID()).categoriaID())
+                    .map(d -> obtenerCategoriaProducto(d.productoID()))
                     .collect(Collectors.toList());
             case DONACIONES_EXITOSAS -> donaciones.stream().map(d -> d.estado().name()).collect(Collectors.toList());
             case DONACIONES_ASCENDENTES, REVOLUCION_DONADORA ->
                     donaciones.stream().map(d -> String.valueOf(d.cantidad())).collect(Collectors.toList());
         };
+    }
+
+    private String obtenerCategoriaProducto(String productoID) {
+        try {
+            return fachadaDonaciones.buscarProductoPorID(productoID).categoriaID();
+        } catch (RuntimeException exception) {
+            registrarErrorIntegracion("donaciones", "buscar_producto");
+            throw exception;
+        }
+    }
+
+    private void registrarErrorIntegracion(String servicio, String operacion) {
+        meterRegistry.counter(
+                "incentivos.integraciones.errores",
+                "servicio", servicio,
+                "operacion", operacion).increment();
+    }
+
+    private void registrarErrorConfiguracion(String dependencia) {
+        meterRegistry.counter(
+                "incentivos.configuracion.errores",
+                "dependencia", dependencia).increment();
     }
 
     private InsigniaDTO toInsigniaDTO(Insignia insignia) {
