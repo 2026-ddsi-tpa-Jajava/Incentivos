@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import ar.edu.utn.dds.k3003.Fachada;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
@@ -25,6 +27,8 @@ import io.micrometer.core.instrument.MeterRegistry;
 
 @RestController
 public class IncentivosController {
+
+    private static final Logger log = LoggerFactory.getLogger(IncentivosController.class);
 
     public record InsigniaAsignacionRequest(String insigniaID) {}
 
@@ -175,6 +179,7 @@ public ResponseEntity<?> buscarInsigniaODonador(@PathVariable("parametro") Strin
     })
     public ResponseEntity<Map<String, String>> handleNotFound(RuntimeException exception) {
         registrarError("404_NOT_FOUND", recursoDe(exception));
+        log.error("[INCENTIVOS] Recurso no encontrado: {}", exception.getMessage(), exception);
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", exception.getMessage() != null ? exception.getMessage() : "Recurso no encontrado"));
     }
@@ -182,6 +187,7 @@ public ResponseEntity<?> buscarInsigniaODonador(@PathVariable("parametro") Strin
     @org.springframework.web.bind.annotation.ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException exception) {
         registrarError("400_BAD_REQUEST", "solicitud");
+        log.error("[INCENTIVOS] Petición inválida: {}", exception.getMessage(), exception);
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", exception.getMessage() != null ? exception.getMessage() : "Petición incorrecta"));
     }
@@ -189,6 +195,7 @@ public ResponseEntity<?> buscarInsigniaODonador(@PathVariable("parametro") Strin
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleInternalError(Exception exception) {
         registrarError("500_INTERNAL_ERROR", "general");
+        log.error("[INCENTIVOS] Error interno no controlado", exception);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(Map.of("error", "Error interno del servicio"));
     }
