@@ -10,6 +10,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
+
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
@@ -40,6 +44,11 @@ public class Fachada implements FachadaIncentivos {
     private final DonadorRepo donadorRepo;
     private final MisionRepo misionRepo;
     private final InsigniaRepo insigniaRepo;
+    private final MeterRegistry meterRegistry;
+    private final Counter avancesCategoria;
+    private final Counter rollbacks;
+    private final Counter erroresIntegracion;
+    private final Timer tiempoProcesamiento;
     private final AtomicLong insigniaSeq = new AtomicLong(1);
     private final AtomicLong misionSeq = new AtomicLong(1);
 
@@ -48,10 +57,31 @@ public class Fachada implements FachadaIncentivos {
 
   
     @Autowired
-    public Fachada(DonadorRepo donadorRepo, MisionRepo misionRepo, InsigniaRepo insigniaRepo) {
+    public Fachada(
+            DonadorRepo donadorRepo,
+            MisionRepo misionRepo,
+            InsigniaRepo insigniaRepo,
+            MeterRegistry meterRegistry) {
         this.donadorRepo = donadorRepo;
         this.misionRepo = misionRepo;
         this.insigniaRepo = insigniaRepo;
+        this.meterRegistry = meterRegistry;
+        this.avancesCategoria = Counter.builder("incentivos.categorias.avances")
+                .description("Avances de categoria producidos por misiones")
+                .tag("componente", "incentivos")
+                .register(meterRegistry);
+        this.rollbacks = Counter.builder("incentivos.procesamiento.rollback")
+                .description("Retrocesos por perdida de progreso")
+                .tag("componente", "incentivos")
+                .register(meterRegistry);
+        this.erroresIntegracion = Counter.builder("incentivos.integraciones.errores")
+                .description("Errores al comunicarse con otros servicios")
+                .tag("componente", "incentivos")
+                .register(meterRegistry);
+        this.tiempoProcesamiento = Timer.builder("incentivos.procesamiento.duracion")
+                .description("Duracion del procesamiento de un donador")
+                .tag("componente", "incentivos")
+                .register(meterRegistry);
     }
 
     @Override
@@ -179,29 +209,34 @@ public class Fachada implements FachadaIncentivos {
 
     @Override
     public void procesarDonador(String donadorID) {
+        Timer.Sample procesamiento = Timer.start(meterRegistry);
         log.info("[INCENTIVOS] Inicio procesamiento donador={}", donadorID);
-        verificarExistenciaExterna(donadorID);
+        try {
+            verificarExistenciaExterna(donadorID);
 
-        Donador donador = obtenerOCrearDonador(donadorID);
-        Mision misionActual = donador.getMisionActual();
+            Donador donador = obtenerOCrearDonador(donadorID);
+            Mision misionActual = donador.getMisionActual();
 
-        if (fachadaDonaciones == null) {
-            log.warn("[INCENTIVOS] No hay fachadaDonaciones configurada. Se omite procesamiento donador={}", donadorID);
-            return;
+            if (fachadaDonaciones == null) {
+                log.warn("[INCENTIVOS] No hay fachadaDonaciones configurada. Se omite procesamiento donador={}", donadorID);
+                return;
+            }
+
+            List<DonacionDTO> donaciones = fachadaDonaciones
+                    .buscarPorDonadorYFechaInicio(donadorID, FECHA_INICIO_HISTORICA);
+            log.info("[INCENTIVOS] Donaciones recuperadas donador={} cantidad={}", donadorID, donaciones.size());
+
+            if (misionActual != null) {
+                evaluarMisionEnCurso(donador, misionActual, donaciones);
+            } else {
+                log.info("[INCENTIVOS] El donador={} no tiene misión en curso", donadorID);
+            }
+
+            evaluarPerdidaDeProgresoEnDonacionesExitosas(donador, donaciones);
+            log.info("[INCENTIVOS] Fin procesamiento donador={}", donadorID);
+        } finally {
+            procesamiento.stop(tiempoProcesamiento);
         }
-
-        List<DonacionDTO> donaciones = fachadaDonaciones
-                .buscarPorDonadorYFechaInicio(donadorID, FECHA_INICIO_HISTORICA);
-        log.info("[INCENTIVOS] Donaciones recuperadas donador={} cantidad={}", donadorID, donaciones.size());
-
-        if (misionActual != null) {
-            evaluarMisionEnCurso(donador, misionActual, donaciones);
-        } else {
-            log.info("[INCENTIVOS] El donador={} no tiene misión en curso", donadorID);
-        }
-
-        evaluarPerdidaDeProgresoEnDonacionesExitosas(donador, donaciones);
-        log.info("[INCENTIVOS] Fin procesamiento donador={}", donadorID);
     }
 
     private void evaluarMisionEnCurso(Donador donador, Mision misionActual, List<DonacionDTO> donaciones) {
@@ -214,6 +249,10 @@ public class Fachada implements FachadaIncentivos {
         if (!misionCumplida) {
             return;
         }
+        meterRegistry.counter(
+                "incentivos.misiones.completadas",
+                "componente", "incentivos",
+                "tipo_mision", misionActual.getTipo().name()).increment();
 
         if (misionActual.getInsigniaID() != null && !donador.tieneInsignia(misionActual.getInsigniaID())) {
             try {
@@ -228,8 +267,12 @@ public class Fachada implements FachadaIncentivos {
             }
         }
 
+        CategoriaDonadorEnum categoriaAnterior = donador.getCategoria();
         CategoriaDonadorEnum nuevaCategoria = misionActual.getCategoriaFin();
         donador.avanzarCategoria(nuevaCategoria, null);
+        if (categoriaAnterior != nuevaCategoria) {
+            avancesCategoria.increment();
+        }
         sincronizarCategoriaExterna(donadorID, nuevaCategoria);
         donadorRepo.save(donador);
         log.info("[INCENTIVOS] Donador avanzado de categoría donador={} nuevaCategoria={} misionActual={}",
@@ -260,6 +303,7 @@ public class Fachada implements FachadaIncentivos {
                     "Retroceso por pérdida de progreso en misión " + mision.getNombre());
             sincronizarCategoriaExterna(donadorID, mision.getCategoriaInicio());
             donadorRepo.save(donador);
+            rollbacks.increment();
             log.warn("[INCENTIVOS] Rollback aplicado donador={} categoriaNueva={} misiónReasignada={}",
                     donadorID, mision.getCategoriaInicio(), mision.getMisionID());
             return;
@@ -272,6 +316,7 @@ public class Fachada implements FachadaIncentivos {
             log.info("[INCENTIVOS] Categoría sincronizada con Donadores y Entidades donador={} categoria={}",
                     donadorID, categoria);
         } catch (RuntimeException e) {
+            erroresIntegracion.increment();
             log.warn("[INCENTIVOS] Falló sincronización externa donador={} categoria={}. Se conserva cambio local.",
                     donadorID, categoria, e);
         }
@@ -281,6 +326,7 @@ public class Fachada implements FachadaIncentivos {
         try {
             fachadaDonadoresYEntidades.buscarDonadorPorID(donadorID);
         } catch (RuntimeException e) {
+            erroresIntegracion.increment();
             throw new DonadorNoEncontradoException("El donador con ID " + donadorID + " no existe en el sistema de Entidades.");
         }
     }
