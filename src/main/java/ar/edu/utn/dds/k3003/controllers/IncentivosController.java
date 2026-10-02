@@ -42,18 +42,17 @@ public class IncentivosController {
     private final Counter insigniasCreadas;
     private final Counter misionesCreadas;
     private final Counter procesarDonadorLlamadas;
-    private final Counter errores;
+    private final MeterRegistry registry;
 
     public IncentivosController(Fachada fachada, MeterRegistry registry) {
         this.fachada = fachada;
+        this.registry = registry;
         this.insigniasCreadas = Counter.builder("incentivos.insignias.creadas")
             .description("Insignias creadas").register(registry);
         this.misionesCreadas = Counter.builder("incentivos.misiones.creadas")
             .description("Misiones creadas").register(registry);
         this.procesarDonadorLlamadas = Counter.builder("incentivos.procesar_donador.llamadas")
             .description("Llamadas a procesarDonador").register(registry);
-        this.errores = Counter.builder("incentivos.errores")
-            .description("Errores en endpoints").register(registry);
     }
 
     @GetMapping("/")
@@ -159,16 +158,20 @@ public ResponseEntity<?> buscarInsigniaODonador(@PathVariable("parametro") Strin
         EntidadNoEncontradaException.class
     })
     public ResponseEntity<Map<String, String>> handleNotFound(RuntimeException exception) {
-        errores.increment();
+        registrarError("404_NOT_FOUND");
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(Map.of("error", exception.getMessage() != null ? exception.getMessage() : "Recurso no encontrado"));
     }
 
     @org.springframework.web.bind.annotation.ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<Map<String, String>> handleBadRequest(IllegalArgumentException exception) {
-        errores.increment();
+        registrarError("400_BAD_REQUEST");
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(Map.of("error", exception.getMessage() != null ? exception.getMessage() : "Petición incorrecta"));
+    }
+
+    private void registrarError(String tipo) {
+        registry.counter("incentivos.errores", "tipo", tipo).increment();
     }
 
     private CambioCategoriaResponse toCambioCategoriaResponse(CambioCategoria cambio) {
