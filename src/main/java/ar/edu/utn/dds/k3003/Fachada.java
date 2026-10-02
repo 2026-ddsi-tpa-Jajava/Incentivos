@@ -96,7 +96,14 @@ public class Fachada implements FachadaIncentivos {
         if (insigniaDTO == null || insigniaDTO.id() != null) {
             throw new IllegalArgumentException("La insignia es invalida");
         }
-
+        // --- AGREGAR ESTA VALIDACIÓN ---
+        if (insigniaDTO.nombre() == null || insigniaDTO.nombre().isBlank()) {
+            throw new IllegalArgumentException("El nombre de la insignia no puede estar vacio");
+        }
+        if (insigniaDTO.descripcion() == null || insigniaDTO.descripcion().isBlank()) {
+            throw new IllegalArgumentException("La descripcion de la insignia no puede estar vacia");
+        }
+        // -------------------------------
         String id = "ins-" + insigniaSeq.getAndIncrement();
         Insignia insignia = new Insignia(id, insigniaDTO.nombre(), insigniaDTO.descripcion());
         insigniaRepo.save(insignia); // Usamos save() de JPA
