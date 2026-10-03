@@ -2,6 +2,7 @@ package ar.edu.utn.dds.k3003.dominio;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
+import ar.edu.utn.dds.k3003.config.ReglasMisionProperties;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 import java.util.ArrayList;
@@ -10,8 +11,6 @@ import java.util.List;
 @Entity
 @DiscriminatorValue("DONACIONES_ASCENDENTES")
 public class MisionDonacionesAscendentes extends Mision {
-
-    private static final int DONACIONES_REQUERIDAS = 5;
 
     protected MisionDonacionesAscendentes() {}
 
@@ -22,11 +21,17 @@ public class MisionDonacionesAscendentes extends Mision {
 
     @Override
     public boolean estaCumplida(List<?> cantidadesDonaciones) {
-        if (cantidadesDonaciones.size() < DONACIONES_REQUERIDAS) return false;
+        return estaCumplida(cantidadesDonaciones, null);
+    }
+
+    @Override
+    public boolean estaCumplida(List<?> cantidadesDonaciones, ReglasMisionProperties reglas) {
+        int requeridas = reglas != null ? reglas.getDonacionesAscendentes() : 5;
+        if (cantidadesDonaciones.size() < requeridas) return false;
         List<Integer> cantidades = cantidadesDonaciones.stream()
             .map(Object::toString).map(Integer::parseInt).toList();
         List<Integer> ultimas = new ArrayList<>(
-            cantidades.subList(cantidades.size() - DONACIONES_REQUERIDAS, cantidades.size()));
+            cantidades.subList(cantidades.size() - requeridas, cantidades.size()));
         for (int i = 1; i < ultimas.size(); i++) {
             if (ultimas.get(i) <= ultimas.get(i - 1)) return false;
         }

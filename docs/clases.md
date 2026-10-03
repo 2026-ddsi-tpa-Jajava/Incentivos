@@ -260,16 +260,24 @@ classDiagram
 | Clase | Responsabilidad |
 |-------|-----------------|
 | **Mision** | Clase abstracta que define el contrato de una misión |
-| **MisionCompletitud** | Donador debe donar en 3 categorías diferentes |
-| **MisionDonacionesExitosas** | Donador debe tener 20 donaciones aceptadas |
-| **MisionDonacionesAscendentes** | Donador debe realizar donaciones de cantidad ascendente |
-| **MisionRevolucionDonadora** | Donador debe superar 10 donaciones con cantidad mayor a 50 |
+| **MisionCompletitud** | Donador debe donar en la cantidad configurable de categorías definida por `incentivos.reglas.categorias-completitud` |
+| **MisionDonacionesExitosas** | Donador debe tener la cantidad configurable de donaciones aceptadas definida por `incentivos.reglas.donaciones-exitosas` |
+| **MisionDonacionesAscendentes** | Donador debe realizar la cantidad configurable de donaciones en orden estrictamente ascendente definida por `incentivos.reglas.donaciones-ascendentes` |
+| **MisionRevolucionDonadora** | Donador debe superar la cantidad configurable de donaciones con cantidad mayor al umbral configurable |
 
 ### Dominio - Donador Local
 | Clase | Responsabilidad |
 |-------|-----------------|
 | **Donador** | Entidad local que rastrea insignias, misión actual e historial de categorías |
 | **CambioCategoria** | Registro de transiciones de categoría |
+
+Los umbrales de las reglas se configuran en `application.properties` y pueden
+sobrescribirse mediante variables de entorno. Los valores disponibles son:
+`incentivos.reglas.categorias-completitud`,
+`incentivos.reglas.donaciones-exitosas`,
+`incentivos.reglas.donaciones-ascendentes`,
+`incentivos.reglas.donaciones-revolucion` y
+`incentivos.reglas.cantidad-minima-revolucion`.
 
 ### Repositorios
 | Clase | Responsabilidad |

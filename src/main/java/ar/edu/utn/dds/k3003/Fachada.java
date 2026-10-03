@@ -19,6 +19,7 @@ import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
+import ar.edu.utn.dds.k3003.config.ReglasMisionProperties;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonadoresYEntidades;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaIncentivos;
@@ -48,6 +49,7 @@ public class Fachada implements FachadaIncentivos {
     private final Counter avancesCategoria;
     private final Counter rollbacks;
     private final Timer tiempoProcesamiento;
+    private final ReglasMisionProperties reglasMision;
     private final AtomicLong insigniaSeq = new AtomicLong(1);
     private final AtomicLong misionSeq = new AtomicLong(1);
 
@@ -60,11 +62,13 @@ public class Fachada implements FachadaIncentivos {
             DonadorRepo donadorRepo,
             MisionRepo misionRepo,
             InsigniaRepo insigniaRepo,
-            MeterRegistry meterRegistry) {
+            MeterRegistry meterRegistry,
+            ReglasMisionProperties reglasMision) {
         this.donadorRepo = donadorRepo;
         this.misionRepo = misionRepo;
         this.insigniaRepo = insigniaRepo;
         this.meterRegistry = meterRegistry;
+        this.reglasMision = reglasMision;
         this.avancesCategoria = Counter.builder("incentivos.categorias.avances")
                 .description("Avances de categoria producidos por misiones")
                 .tag("componente", "incentivos")
@@ -251,7 +255,7 @@ public class Fachada implements FachadaIncentivos {
     private void evaluarMisionEnCurso(Donador donador, Mision misionActual, List<DonacionDTO> donaciones) {
         String donadorID = donador.getDonadorID();
         List<String> datosEvaluacion = extraerDatosParaMision(misionActual, donaciones);
-        boolean misionCumplida = misionActual.estaCumplida(datosEvaluacion);
+        boolean misionCumplida = misionActual.estaCumplida(datosEvaluacion, reglasMision);
         log.info("[INCENTIVOS] Evaluación misión donador={} mision={} tipo={} cumplida={}",
                 donadorID, misionActual.getMisionID(), misionActual.getTipo(), misionCumplida);
 
@@ -299,7 +303,7 @@ public class Fachada implements FachadaIncentivos {
             if (!donador.tieneInsignia(mision.getInsigniaID())) {
                 continue;
             }
-            if (mision.estaCumplida(estadosDonaciones)) {
+            if (mision.estaCumplida(estadosDonaciones, reglasMision)) {
                 continue;
             }
 

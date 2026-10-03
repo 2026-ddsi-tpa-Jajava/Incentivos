@@ -4,6 +4,7 @@ import java.util.List;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
+import ar.edu.utn.dds.k3003.config.ReglasMisionProperties;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
@@ -11,7 +12,6 @@ import jakarta.persistence.Entity;
 @DiscriminatorValue("DONACIONES_EXITOSAS")
 public class MisionDonacionesExitosas extends Mision {
 
-    private static final int DONACIONES_REQUERIDAS = 20;
     private static final String ESTADO_EXITOSA = "ACEPTADA";
 
     protected MisionDonacionesExitosas() {}
@@ -28,11 +28,17 @@ public class MisionDonacionesExitosas extends Mision {
 
     @Override
     public boolean estaCumplida(List<?> estadosDonaciones) {
+        return estaCumplida(estadosDonaciones, null);
+    }
+
+    @Override
+    public boolean estaCumplida(List<?> estadosDonaciones, ReglasMisionProperties reglas) {
         long exitosas = estadosDonaciones.stream()
                 .map(Object::toString)
                 .filter(ESTADO_EXITOSA::equals)
                 .count();
-        return exitosas >= DONACIONES_REQUERIDAS;
+        int requeridas = reglas != null ? reglas.getDonacionesExitosas() : 20;
+        return exitosas >= requeridas;
     }
 
     @Override

@@ -4,15 +4,13 @@ import java.util.List;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
+import ar.edu.utn.dds.k3003.config.ReglasMisionProperties;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
 @Entity
 @DiscriminatorValue("REVOLUCION_DONADORA")
 public class MisionRevolucionDonadora extends Mision {
-
-    private static final int CANTIDAD_MINIMA_DONACION = 50;
-    private static final int DONACIONES_REQUERIDAS = 10;
 
     protected MisionRevolucionDonadora() {}
 
@@ -23,10 +21,17 @@ public class MisionRevolucionDonadora extends Mision {
 
     @Override
     public boolean estaCumplida(List<?> cantidadesDonaciones) {
+        return estaCumplida(cantidadesDonaciones, null);
+    }
+
+    @Override
+    public boolean estaCumplida(List<?> cantidadesDonaciones, ReglasMisionProperties reglas) {
+        int cantidadMinima = reglas != null ? reglas.getCantidadMinimaRevolucion() : 50;
+        int donacionesRequeridas = reglas != null ? reglas.getDonacionesRevolucion() : 10;
         long validas = cantidadesDonaciones.stream()
             .map(Object::toString).map(Integer::parseInt)
-            .filter(c -> c > CANTIDAD_MINIMA_DONACION).count();
-        return validas > DONACIONES_REQUERIDAS;
+            .filter(c -> c > cantidadMinima).count();
+        return validas > donacionesRequeridas;
     }
 
     @Override

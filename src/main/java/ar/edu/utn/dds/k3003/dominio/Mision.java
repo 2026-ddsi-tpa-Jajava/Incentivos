@@ -4,6 +4,7 @@ import java.util.List;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
+import ar.edu.utn.dds.k3003.config.ReglasMisionProperties;
 import jakarta.persistence.Column;
 import jakarta.persistence.DiscriminatorColumn;
 import jakarta.persistence.Entity;
@@ -46,6 +47,10 @@ public abstract class Mision {
     }
 
     public abstract boolean estaCumplida(List<?> donaciones);
+
+    public boolean estaCumplida(List<?> donaciones, ReglasMisionProperties reglas) {
+        return estaCumplida(donaciones);
+    }
     public abstract TipoMisionEnum getTipo();
 
     public String getMisionID() { return misionID; }

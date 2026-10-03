@@ -5,14 +5,13 @@ import java.util.stream.Collectors;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.TipoMisionEnum;
+import ar.edu.utn.dds.k3003.config.ReglasMisionProperties;
 import jakarta.persistence.DiscriminatorValue;
 import jakarta.persistence.Entity;
 
 @Entity
 @DiscriminatorValue("COMPLETITUD")
 public class MisionCompletitud extends Mision {
-
-    private static final int CATEGORIAS_REQUERIDAS = 3;
 
     protected MisionCompletitud() {}
 
@@ -28,11 +27,17 @@ public class MisionCompletitud extends Mision {
 
     @Override
     public boolean estaCumplida(List<?> categoriasDonadas) {
+        return estaCumplida(categoriasDonadas, null);
+    }
+
+    @Override
+    public boolean estaCumplida(List<?> categoriasDonadas, ReglasMisionProperties reglas) {
         long categoriasdistintas = categoriasDonadas.stream()
                 .map(Object::toString)
                 .collect(Collectors.toSet())
                 .size();
-        return categoriasdistintas >= CATEGORIAS_REQUERIDAS;
+        int requeridas = reglas != null ? reglas.getCategoriasCompletitud() : 3;
+        return categoriasdistintas >= requeridas;
     }
 
     @Override
