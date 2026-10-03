@@ -15,6 +15,8 @@ import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Timer;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
+import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.ProductoDTO;
+import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.SubcategoriaDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.CategoriaDonadorEnum;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
@@ -390,7 +392,20 @@ public class Fachada implements FachadaIncentivos {
 
     private String obtenerCategoriaProducto(String productoID) {
         try {
-            return fachadaDonaciones.buscarProductoPorID(productoID).categoriaID();
+            ProductoDTO producto = fachadaDonaciones.buscarProductoPorID(productoID);
+            if (producto == null || producto.subcategoriaID() == null
+                    || producto.subcategoriaID().isBlank()) {
+                throw new IllegalStateException("El producto " + productoID
+                        + " no contiene una subcategoría válida");
+            }
+            SubcategoriaDTO subcategoria =
+                    fachadaDonaciones.buscarSubcategoriaPorID(producto.subcategoriaID());
+            if (subcategoria == null || subcategoria.categoriaID() == null
+                    || subcategoria.categoriaID().isBlank()) {
+                throw new IllegalStateException("La subcategoría " + producto.subcategoriaID()
+                        + " no contiene una categoría válida");
+            }
+            return subcategoria.categoriaID();
         } catch (RuntimeException exception) {
             registrarErrorIntegracion("donaciones", "buscar_producto");
             throw exception;

@@ -2,6 +2,7 @@ package ar.edu.utn.dds.k3003.clients;
 
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.DonacionDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.ProductoDTO;
+import ar.edu.utn.dds.k3003.catedra.dtos.donaciones.SubcategoriaDTO;
 import ar.edu.utn.dds.k3003.catedra.fachadas.FachadaDonaciones;
 import com.fasterxml.jackson.core.type.TypeReference;
 import java.time.LocalDate;
@@ -33,6 +34,17 @@ public List<DonacionDTO> buscarPorDonadorYFechaInicio(String donadorID, LocalDat
             return HttpClientBuilder.get(url, ProductoDTO.class);
         } catch (Exception e) {
             throw new RuntimeException("Error al buscar el producto por red por ID: " + productoID, e);
+        }
+    }
+
+    @Override
+    public SubcategoriaDTO buscarSubcategoriaPorID(String subcategoriaID) {
+        String url = urlBase + "/subcategorias/" + subcategoriaID;
+        try {
+            return HttpClientBuilder.get(url, SubcategoriaDTO.class);
+        } catch (Exception e) {
+            throw new RuntimeException("Error al buscar la subcategoria por red por ID: "
+                    + subcategoriaID, e);
         }
     }
 

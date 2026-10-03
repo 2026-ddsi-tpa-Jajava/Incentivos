@@ -78,6 +78,7 @@ graph LR
 | Incentivos | Donadores y Entidades | modifcarCategoria | HTTP PATCH |
 | Incentivos | Donaciones | buscarPorDonadorYFechaInicio | HTTP GET |
 | Incentivos | Donaciones | buscarProductoPorID | HTTP GET |
+| Incentivos | Donaciones | buscarSubcategoriaPorID | HTTP GET `/subcategorias/{id}` |
 
 ---
 
