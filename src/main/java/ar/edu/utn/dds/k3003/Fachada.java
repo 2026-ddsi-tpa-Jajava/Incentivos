@@ -221,6 +221,7 @@ public class Fachada implements FachadaIncentivos {
             verificarExistenciaExterna(donadorID);
 
             Donador donador = obtenerOCrearDonador(donadorID);
+            asignarMisionInicialSiCorresponde(donador);
             Mision misionActual = donador.getMisionActual();
 
             if (fachadaDonaciones == null) {
@@ -349,6 +350,31 @@ public class Fachada implements FachadaIncentivos {
         return donadorRepo.findById(donadorID).orElseGet(() -> {
             return donadorRepo.save(new Donador(donadorID));
         });
+    }
+
+    private void asignarMisionInicialSiCorresponde(Donador donador) {
+        if (!CategoriaDonadorEnum.OCASIONAL.equals(donador.getCategoria())
+                || donador.getMisionActual() != null) {
+            return;
+        }
+
+        Mision misionInicial = misionRepo.findByCategoriaInicio(CategoriaDonadorEnum.OCASIONAL)
+                .stream()
+                .filter(mision -> TipoMisionEnum.COMPLETITUD.equals(mision.getTipo()))
+                .findFirst()
+                .orElse(null);
+
+        if (misionInicial == null) {
+            registrarErrorConfiguracion("mision_inicial_completitud");
+            log.warn("[INCENTIVOS] No existe la misión inicial de completitud para el donador={}",
+                    donador.getDonadorID());
+            return;
+        }
+
+        donador.setMisionActual(misionInicial);
+        donadorRepo.save(donador);
+        log.info("[INCENTIVOS] Misión inicial asignada donador={} mision={}",
+                donador.getDonadorID(), misionInicial.getMisionID());
     }
 
     private List<String> extraerDatosParaMision(Mision mision, List<DonacionDTO> donaciones) {
