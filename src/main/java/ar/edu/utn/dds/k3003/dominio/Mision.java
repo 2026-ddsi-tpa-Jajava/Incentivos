@@ -46,11 +46,7 @@ public abstract class Mision {
         this.categoriaFin = categoriaFin;
     }
 
-    public abstract boolean estaCumplida(List<?> donaciones);
-
-    public boolean estaCumplida(List<?> donaciones, ReglasMisionProperties reglas) {
-        return estaCumplida(donaciones);
-    }
+    public abstract boolean estaCumplida(List<?> donaciones, ReglasMisionProperties reglas);
     public abstract TipoMisionEnum getTipo();
 
     public String getMisionID() { return misionID; }

@@ -20,14 +20,9 @@ public class MisionRevolucionDonadora extends Mision {
     }
 
     @Override
-    public boolean estaCumplida(List<?> cantidadesDonaciones) {
-        return estaCumplida(cantidadesDonaciones, null);
-    }
-
-    @Override
     public boolean estaCumplida(List<?> cantidadesDonaciones, ReglasMisionProperties reglas) {
-        int cantidadMinima = reglas != null ? reglas.getCantidadMinimaRevolucion() : 50;
-        int donacionesRequeridas = reglas != null ? reglas.getDonacionesRevolucion() : 10;
+        int cantidadMinima = reglas.getCantidadMinimaRevolucion();
+        int donacionesRequeridas = reglas.getDonacionesRevolucion();
         long validas = cantidadesDonaciones.stream()
             .map(Object::toString).map(Integer::parseInt)
             .filter(c -> c > cantidadMinima).count();

@@ -7,11 +7,11 @@ import org.springframework.stereotype.Component;
 @ConfigurationProperties(prefix = "incentivos.reglas")
 public class ReglasMisionProperties {
 
-    private int categoriasCompletitud = 3;
-    private int donacionesExitosas = 20;
-    private int donacionesAscendentes = 5;
-    private int donacionesRevolucion = 10;
-    private int cantidadMinimaRevolucion = 50;
+    private int categoriasCompletitud;
+    private int donacionesExitosas;
+    private int donacionesAscendentes;
+    private int donacionesRevolucion;
+    private int cantidadMinimaRevolucion;
 
     public int getCategoriasCompletitud() {
         return categoriasCompletitud;

@@ -26,18 +26,12 @@ public class MisionCompletitud extends Mision {
     }
 
     @Override
-    public boolean estaCumplida(List<?> categoriasDonadas) {
-        return estaCumplida(categoriasDonadas, null);
-    }
-
-    @Override
     public boolean estaCumplida(List<?> categoriasDonadas, ReglasMisionProperties reglas) {
         long categoriasdistintas = categoriasDonadas.stream()
                 .map(Object::toString)
                 .collect(Collectors.toSet())
                 .size();
-        int requeridas = reglas != null ? reglas.getCategoriasCompletitud() : 3;
-        return categoriasdistintas >= requeridas;
+        return categoriasdistintas >= reglas.getCategoriasCompletitud();
     }
 
     @Override

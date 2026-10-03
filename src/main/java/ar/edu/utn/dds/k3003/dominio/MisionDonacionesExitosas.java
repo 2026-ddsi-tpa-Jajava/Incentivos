@@ -27,18 +27,12 @@ public class MisionDonacionesExitosas extends Mision {
     }
 
     @Override
-    public boolean estaCumplida(List<?> estadosDonaciones) {
-        return estaCumplida(estadosDonaciones, null);
-    }
-
-    @Override
     public boolean estaCumplida(List<?> estadosDonaciones, ReglasMisionProperties reglas) {
         long exitosas = estadosDonaciones.stream()
                 .map(Object::toString)
                 .filter(ESTADO_EXITOSA::equals)
                 .count();
-        int requeridas = reglas != null ? reglas.getDonacionesExitosas() : 20;
-        return exitosas >= requeridas;
+        return exitosas >= reglas.getDonacionesExitosas();
     }
 
     @Override
