@@ -4,6 +4,16 @@
 
 El componente de Incentivos del TP de DDSI gestiona insignias (reconocimientos) y misiones (objetivos) para donadores. Las misiones evalúan el cumplimiento según diferentes criterios y permiten que los donadores avancen de categoría.
 
+### Alcance y responsabilidad
+
+Incentivos no administra las estadísticas generales del sistema. Esa
+responsabilidad corresponde al componente de Donaciones y Entidades. Incentivos
+solo consulta los datos externos necesarios para evaluar misiones y mantiene su
+propio estado de insignias, misiones y categorías. Las métricas `incentivos.*`
+son métricas técnicas y de negocio utilizadas para observar el funcionamiento
+del componente, y no reemplazan las estadísticas gestionadas por Donaciones y
+Entidades.
+
 ---
 
 ## Diagrama de Clases UML

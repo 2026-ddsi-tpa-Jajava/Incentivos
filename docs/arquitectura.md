@@ -66,6 +66,8 @@ graph LR
 ```
 > Nota de Arquitectura: La persistencia se realiza en una base de datos relacional PostgreSQL desplegada en Render, utilizando Spring Data JPA como ORM. El componente consume mediante clientes HTTP (utilizando HttpClient nativo de Java 11+) las APIs reales necesarias de Donadores y Entidades y Donaciones.
 
+> **Responsabilidad de estadísticas:** las estadísticas del sistema son responsabilidad del componente de Donaciones y Entidades. Incentivos no calcula ni administra estadísticas; únicamente consulta el historial de donaciones y los datos del donador que necesita para evaluar misiones, asignar insignias y actualizar categorías. Las métricas `incentivos.*` mencionadas en este proyecto son métricas técnicas y de negocio para observabilidad del propio componente, no estadísticas generales del sistema.
+
 ---
 
 ## Interacciones externas reales
