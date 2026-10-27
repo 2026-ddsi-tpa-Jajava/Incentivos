@@ -32,6 +32,19 @@
 - `DB_DIALECT`
 - `DD_API_KEY`
 - `INCENTIVOS_PROCESAMIENTO_INTERVALO_MS`
+- `INCENTIVOS_EVENTOS_ENABLED` (activar con `true` para publicar eventos CQRS)
+- `RABBITMQ_HOST`
+- `RABBITMQ_PORT`
+- `RABBITMQ_USERNAME`
+- `RABBITMQ_PASSWORD`
+
+## Sincronización con el modelo de lectura
+
+Cuando `INCENTIVOS_EVENTOS_ENABLED=true`, Incentivos publica snapshots de los
+donadores y eventos de asignación de insignias o misiones en la cola durable
+`cqrs.events.queue`, que es consumida por el Servicio de Consultas
+(`CQRS-MongoDB`). Los eventos tienen `id`, `tipo`, `version`, `ocurridoEn` y
+`payload`, y se publican después de persistir el cambio en la base de escritura.
 
 
 ---
@@ -54,5 +67,4 @@
 - Se agregaron logs de trazabilidad del flujo de procesamiento y del cron para facilitar diagnóstico.
 
 ---
-
 

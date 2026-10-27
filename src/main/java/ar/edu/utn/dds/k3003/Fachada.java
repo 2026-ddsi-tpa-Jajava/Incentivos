@@ -34,6 +34,7 @@ import ar.edu.utn.dds.k3003.dominio.MisionDonacionesExitosas;
 import ar.edu.utn.dds.k3003.dominio.MisionRevolucionDonadora;
 import ar.edu.utn.dds.k3003.exceptions.DonadorNoEncontradoException;
 import ar.edu.utn.dds.k3003.exceptions.EntidadNoEncontradaException;
+import ar.edu.utn.dds.k3003.events.IntegrationEventPublisher;
 import ar.edu.utn.dds.k3003.repositories.DonadorRepo;
 import ar.edu.utn.dds.k3003.repositories.InsigniaRepo;
 import ar.edu.utn.dds.k3003.repositories.MisionRepo;
@@ -47,6 +48,7 @@ public class Fachada implements FachadaIncentivos {
     private final DonadorRepo donadorRepo;
     private final MisionRepo misionRepo;
     private final InsigniaRepo insigniaRepo;
+    private final IntegrationEventPublisher eventPublisher;
     private final MeterRegistry meterRegistry;
     private final Counter avancesCategoria;
     private final Counter rollbacks;
@@ -64,11 +66,13 @@ public class Fachada implements FachadaIncentivos {
             DonadorRepo donadorRepo,
             MisionRepo misionRepo,
             InsigniaRepo insigniaRepo,
+            IntegrationEventPublisher eventPublisher,
             MeterRegistry meterRegistry,
             ReglasMisionProperties reglasMision) {
         this.donadorRepo = donadorRepo;
         this.misionRepo = misionRepo;
         this.insigniaRepo = insigniaRepo;
+        this.eventPublisher = eventPublisher;
         this.meterRegistry = meterRegistry;
         this.reglasMision = reglasMision;
         this.avancesCategoria = Counter.builder("incentivos.categorias.avances")
@@ -167,7 +171,9 @@ public class Fachada implements FachadaIncentivos {
                 .orElseThrow(() -> new EntidadNoEncontradaException("Insignia no encontrada en base de datos"));
 
         donador.agregarInsignia(insignia);
-        donadorRepo.save(donador); 
+        donadorRepo.save(donador);
+        eventPublisher.publishInsigniaAsignada(donador, insignia);
+        eventPublisher.publishDonadorActualizado(donador);
     }
 
     @Override
@@ -183,7 +189,9 @@ public class Fachada implements FachadaIncentivos {
                 .orElseThrow(() -> new EntidadNoEncontradaException("Mision no encontrada en base de datos"));
 
         donador.setMisionActual(mision);
-        donadorRepo.save(donador); 
+        donadorRepo.save(donador);
+        eventPublisher.publishMisionAsignada(donador, mision);
+        eventPublisher.publishDonadorActualizado(donador);
     }
 
     @Override
@@ -228,6 +236,7 @@ public class Fachada implements FachadaIncentivos {
 
             if (fachadaDonaciones == null) {
                 registrarErrorConfiguracion("donaciones");
+                eventPublisher.publishDonadorActualizado(donador);
                 log.warn("[INCENTIVOS] No hay fachadaDonaciones configurada. Se omite procesamiento donador={}", donadorID);
                 return;
             }
@@ -249,6 +258,7 @@ public class Fachada implements FachadaIncentivos {
             }
 
             evaluarPerdidaDeProgresoEnDonacionesExitosas(donador, donaciones);
+            eventPublisher.publishDonadorActualizado(donador);
             log.info("[INCENTIVOS] Fin procesamiento donador={}", donadorID);
         } finally {
             procesamiento.stop(tiempoProcesamiento);
@@ -291,6 +301,7 @@ public class Fachada implements FachadaIncentivos {
         }
         sincronizarCategoriaExterna(donadorID, nuevaCategoria);
         donadorRepo.save(donador);
+        eventPublisher.publishDonadorActualizado(donador);
         log.info("[INCENTIVOS] Donador avanzado de categoría donador={} nuevaCategoria={} misionActual={}",
                 donadorID, nuevaCategoria, null);
     }
@@ -319,6 +330,7 @@ public class Fachada implements FachadaIncentivos {
                     "Retroceso por pérdida de progreso en misión " + mision.getNombre());
             sincronizarCategoriaExterna(donadorID, mision.getCategoriaInicio());
             donadorRepo.save(donador);
+            eventPublisher.publishDonadorActualizado(donador);
             rollbacks.increment();
             log.warn("[INCENTIVOS] Rollback aplicado donador={} categoriaNueva={} misiónReasignada={}",
                     donadorID, mision.getCategoriaInicio(), mision.getMisionID());
