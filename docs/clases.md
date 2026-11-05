@@ -1,4 +1,4 @@
-# 📊 Diagrama de Clases – Entrega 3 - Componente Incentivos
+# 📊 Diagrama de Clases – Entrega 6 - Componente Incentivos
 
 ## Descripción General
 
@@ -57,6 +57,7 @@ classDiagram
         -AtomicLong misionSeq
         -FachadaDonaciones fachadaDonaciones
         -FachadaDonadoresYEntidades fachadaDonadoresYEntidades
+        +procesarDonador(donadorID) void
         +agregarInsignia(nombre, descripcion) Insignia
         +agregarMision(nombre, insigniaID, categoriaInicio, categoriaFin, tipo) Mision
         +getInsignias() List~Insignia~
@@ -148,30 +149,30 @@ classDiagram
 
     %% ========== REPOSITORIOS ==========
     class DonadorRepo {
-        -List~Donador~ donadores
-        +guardar(Donador) void
-        +buscar(String) Donador
-        +existe(String) boolean
-        +todos() List~Donador~
+        <<interface JpaRepository>>
+        +save(Donador) Donador
+        +findById(String) Optional~Donador~
+        +findByMisionActualIsNotNull() List~Donador~
     }
 
     class InsigniaRepo {
-        -List~Insignia~ insignias
-        +guardar(Insignia) void
-        +buscar(String) Insignia
-        +todas() List~Insignia~
+        <<interface JpaRepository>>
+        +save(Insignia) Insignia
+        +findById(String) Optional~Insignia~
+        +existsById(String) boolean
     }
 
     class MisionRepo {
-        -List~Mision~ misiones
-        +guardar(Mision) void
-        +buscar(String) Mision
-        +todas() List~Mision~
+        <<interface JpaRepository>>
+        +save(Mision) Mision
+        +findById(String) Optional~Mision~
+        +findByCategoriaInicio(CategoriaDonadorEnum) List~Mision~
     }
 
     %% ========== CONTROLADOR REST ==========
     class IncentivosController {
         -Fachada fachada
+        -IncentivosDataInitializer dataInitializer
         +crearInsignia(InsigniaDTO) ResponseEntity
         +listarInsignias() ResponseEntity
         +buscarInsignia(id) ResponseEntity
@@ -184,6 +185,16 @@ classDiagram
         +getMisionEnCursoDeDonador(donadorID) ResponseEntity
         +obtenerEstadoDonador(donadorID) ResponseEntity
         +procesarDonador(donadorID) ResponseEntity
+        +limpiarTodo() ResponseEntity
+    }
+
+    class IncentivosDataInitializer {
+        +run(args) void
+        +inicializarDatosBase() void
+    }
+
+    class MisionProgressCronJob {
+        +procesarDonadoresConMisionAsignada() void
     }
 
     %% ========== EXCEPCIONES ==========
@@ -199,6 +210,8 @@ classDiagram
         OCASIONAL
         COLABORADOR
         TRANSFORMADOR
+        SALVADOR
+        REVOLUCIONARIO
     }
 
     class TipoMisionEnum {
@@ -213,6 +226,10 @@ classDiagram
     Fachada ..|> FachadaIncentivos
     Fachada ..> FachadaDonaciones : usa
     Fachada ..> FachadaDonadoresYEntidades : usa
+    Fachada --> IntegrationEventPublisher
+    IncentivosDataInitializer --> InsigniaRepo
+    IncentivosDataInitializer --> MisionRepo
+    MisionProgressCronJob --> Fachada
     Fachada --> DonadorRepo
     Fachada --> InsigniaRepo
     Fachada --> MisionRepo
@@ -301,6 +318,13 @@ sobrescribirse mediante variables de entorno. Los valores disponibles son:
 |-------|-----------------|
 | **IncentivosController** | Expone endpoints REST del componente |
 
+### Infraestructura
+| Clase | Responsabilidad |
+|-------|-----------------|
+| **IncentivosDataInitializer** | Carga de forma idempotente las insignias y misiones base al iniciar la aplicación o después de `/reset` |
+| **MisionProgressCronJob** | Procesa periódicamente los donadores con misión asignada |
+| **IntegrationEventPublisher** | Publica eventos de Incentivos para actualizar el modelo de lectura CQRS |
+
 ### Excepciones
 | Clase | Responsabilidad |
 |-------|-----------------|
@@ -310,7 +334,7 @@ sobrescribirse mediante variables de entorno. Los valores disponibles son:
 ### Enumeraciones
 | Clase | Valores |
 |-------|--------|
-| **CategoriaDonadorEnum** | OCASIONAL, COLABORADOR, TRANSFORMADOR |
+| **CategoriaDonadorEnum** | OCASIONAL, COLABORADOR, TRANSFORMADOR, SALVADOR, REVOLUCIONARIO |
 | **TipoMisionEnum** | COMPLETITUD, DONACIONES_EXITOSAS, DONACIONES_ASCENDENTES, REVOLUCION_DONADORA |
 
 ---
@@ -341,6 +365,27 @@ POST /procesamiento/{donadorID}
 → Si cumplida: asigna insignia y avanza categoría
 ```
 
+### 4. Procesamiento automático
+```
+MisionProgressCronJob
+→ obtiene donadores externos y locales con misión
+→ Fachada.procesarDonador()
+→ evalúa y persiste el resultado
+```
+
+Al completar `Completitud`, se asigna `Donaciones Exitosas`. Al completar esta
+última no se asigna otra misión automáticamente, porque las misiones finales
+requieren una elección del donador.
+
+### 5. Pérdida de progreso
+```
+Donación aceptada pasa a tener queja
+→ cron procesa el donador
+→ se quita la insignia de Donaciones Exitosas
+→ se retrocede la categoría
+→ se reasigna la misión
+```
+
 ---
 
 ## Notas Importantes
@@ -350,3 +395,4 @@ POST /procesamiento/{donadorID}
 - Los modelos locales (`Donador`, `Insignia`, `Mision`) ahora **persisten en PostgreSQL** utilizando Spring Data JPA y mapeo de herencia `SINGLE_TABLE`.
 - Las consultas a donadores y donaciones se hacen mediante red (HTTP REST) consumiendo las APIs externas del equipo usando el `HttpClientBuilder`.
 - Se implementaron métricas de negocio mediante Micrometer/Datadog: misiones completadas, avances de categoría, rollback, duración y errores de procesamiento, errores HTTP por tipo/recurso, y errores de integración por servicio/operación.
+- Los eventos CQRS se publican en RabbitMQ después de persistir cambios locales.

@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import ar.edu.utn.dds.k3003.Fachada;
+import ar.edu.utn.dds.k3003.config.IncentivosDataInitializer;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.InsigniaDTO;
 import ar.edu.utn.dds.k3003.catedra.dtos.incentivos.MisionDTO;
 import ar.edu.utn.dds.k3003.dominio.CambioCategoria;
@@ -44,13 +45,16 @@ public class IncentivosController {
         List<CambioCategoriaResponse> historialCategorias) {}
 
     private final Fachada fachada;
+    private final IncentivosDataInitializer dataInitializer;
     private final Counter insigniasCreadas;
     private final Counter misionesCreadas;
     private final Counter procesarDonadorLlamadas;
     private final MeterRegistry registry;
 
-    public IncentivosController(Fachada fachada, MeterRegistry registry) {
+    public IncentivosController(
+        Fachada fachada, IncentivosDataInitializer dataInitializer, MeterRegistry registry) {
         this.fachada = fachada;
+        this.dataInitializer = dataInitializer;
         this.registry = registry;
         this.insigniasCreadas = Counter.builder("incentivos.insignias.creadas")
             .description("Insignias creadas")
@@ -170,6 +174,7 @@ public ResponseEntity<?> buscarInsigniaODonador(@PathVariable("parametro") Strin
     @DeleteMapping("/reset")
     public ResponseEntity<Void> limpiarTodo() {
         fachada.limpiarTodo();
+        dataInitializer.inicializarDatosBase();
         return ResponseEntity.noContent().build();
     }
 

@@ -33,10 +33,11 @@
 - `DD_API_KEY`
 - `INCENTIVOS_PROCESAMIENTO_INTERVALO_MS`
 - `INCENTIVOS_EVENTOS_ENABLED` (activar con `true` para publicar eventos CQRS)
-- `RABBITMQ_HOST`
-- `RABBITMQ_PORT`
-- `RABBITMQ_USERNAME`
-- `RABBITMQ_PASSWORD`
+- `SPRING_RABBITMQ_HOST`
+- `SPRING_RABBITMQ_PORT`
+- `SPRING_RABBITMQ_USERNAME`
+- `SPRING_RABBITMQ_PASSWORD`
+- `SPRING_RABBITMQ_VIRTUAL_HOST`
 
 ## Sincronización con el modelo de lectura
 
@@ -45,6 +46,20 @@ donadores y eventos de asignación de insignias o misiones en la cola durable
 `cqrs.events.queue`, que es consumida por el Servicio de Consultas
 (`CQRS-MongoDB`). Los eventos tienen `id`, `tipo`, `version`, `ocurridoEn` y
 `payload`, y se publican después de persistir el cambio en la base de escritura.
+
+## Datos iniciales
+
+Al iniciar la aplicación se crean de forma idempotente las cuatro insignias y
+las cuatro misiones base. Si la base se elimina, vuelven a generarse
+automáticamente. Cuando Incentivos detecta por primera vez a un donador, le
+asigna la misión `Completitud` antes de persistirlo.
+
+`DELETE /reset` limpia los datos y vuelve a crear automáticamente las misiones e
+insignias base.
+
+Al completar `Completitud`, se asigna automáticamente `Donaciones Exitosas`.
+Luego de completar esa misión no se asigna otra automáticamente: las misiones
+finales quedan disponibles para una futura elección del donador.
 
 
 ---
@@ -67,4 +82,3 @@ donadores y eventos de asignación de insignias o misiones en la cola durable
 - Se agregaron logs de trazabilidad del flujo de procesamiento y del cron para facilitar diagnóstico.
 
 ---
-

@@ -295,15 +295,20 @@ public class Fachada implements FachadaIncentivos {
 
         CategoriaDonadorEnum categoriaAnterior = donador.getCategoria();
         CategoriaDonadorEnum nuevaCategoria = misionActual.getCategoriaFin();
-        donador.avanzarCategoria(nuevaCategoria, null);
+        Mision siguienteMision = siguienteMisionAutomatica(misionActual);
+        donador.avanzarCategoria(nuevaCategoria, siguienteMision);
         if (categoriaAnterior != nuevaCategoria) {
             avancesCategoria.increment();
         }
         sincronizarCategoriaExterna(donadorID, nuevaCategoria);
         donadorRepo.save(donador);
+        if (siguienteMision != null) {
+            eventPublisher.publishMisionAsignada(donador, siguienteMision);
+        }
         eventPublisher.publishDonadorActualizado(donador);
         log.info("[INCENTIVOS] Donador avanzado de categoría donador={} nuevaCategoria={} misionActual={}",
-                donadorID, nuevaCategoria, null);
+                donadorID, nuevaCategoria,
+                siguienteMision == null ? null : siguienteMision.getMisionID());
     }
 
     private void evaluarPerdidaDeProgresoEnDonacionesExitosas(Donador donador, List<DonacionDTO> donaciones) {
@@ -362,7 +367,14 @@ public class Fachada implements FachadaIncentivos {
     // Adaptado para usar JPA (findById y save)
     private Donador obtenerOCrearDonador(String donadorID) {
         return donadorRepo.findById(donadorID).orElseGet(() -> {
-            return donadorRepo.save(new Donador(donadorID));
+            Donador donador = new Donador(donadorID);
+            asignarMisionInicialSiCorresponde(donador);
+            Donador guardado = donadorRepo.save(donador);
+            if (guardado.getMisionActual() != null) {
+                eventPublisher.publishMisionAsignada(guardado, guardado.getMisionActual());
+            }
+            eventPublisher.publishDonadorActualizado(guardado);
+            return guardado;
         });
     }
 
@@ -386,9 +398,24 @@ public class Fachada implements FachadaIncentivos {
         }
 
         donador.setMisionActual(misionInicial);
-        donadorRepo.save(donador);
         log.info("[INCENTIVOS] Misión inicial asignada donador={} mision={}",
                 donador.getDonadorID(), misionInicial.getMisionID());
+    }
+
+    private Mision siguienteMisionAutomatica(Mision misionActual) {
+        if (!TipoMisionEnum.COMPLETITUD.equals(misionActual.getTipo())
+                && !TipoMisionEnum.DONACIONES_EXITOSAS.equals(misionActual.getTipo())) {
+            return null;
+        }
+
+        if (TipoMisionEnum.DONACIONES_EXITOSAS.equals(misionActual.getTipo())) {
+            return null;
+        }
+
+        return misionRepo.findByCategoriaInicio(misionActual.getCategoriaFin()).stream()
+                .filter(mision -> TipoMisionEnum.DONACIONES_EXITOSAS.equals(mision.getTipo()))
+                .findFirst()
+                .orElse(null);
     }
 
     private List<String> extraerDatosParaMision(Mision mision, List<DonacionDTO> donaciones) {
