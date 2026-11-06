@@ -51,7 +51,14 @@ public class Donador {
         this.historialCategorias.add(new CambioCategoria(null, this.categoria, LocalDateTime.now(), "Alta donador"));
     }
 
-    public void agregarInsignia(Insignia insignia) { this.insignias.add(insignia); }
+    public void agregarInsignia(Insignia insignia) {
+        if (insignia == null) {
+            throw new IllegalArgumentException("La insignia no puede ser nula");
+        }
+        if (!tieneInsignia(insignia.getInsigniaID())) {
+            this.insignias.add(insignia);
+        }
+    }
 
     public boolean tieneInsignia(String insigniaID) {
         return insignias.stream().anyMatch(insignia -> insignia.getInsigniaID().equals(insigniaID));

@@ -13,6 +13,9 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+
 import ar.edu.utn.dds.k3003.dominio.CambioCategoria;
 import ar.edu.utn.dds.k3003.dominio.Donador;
 import ar.edu.utn.dds.k3003.dominio.Insignia;
@@ -25,12 +28,18 @@ public class IntegrationEventPublisher {
 
     private final RabbitTemplate rabbitTemplate;
     private final boolean enabled;
+    private final Counter publicationFailures;
 
     public IntegrationEventPublisher(
             RabbitTemplate rabbitTemplate,
+            MeterRegistry meterRegistry,
             @Value("${incentivos.eventos.enabled:false}") boolean enabled) {
         this.rabbitTemplate = rabbitTemplate;
         this.enabled = enabled;
+        this.publicationFailures = Counter.builder("incentivos.eventos.publicacion.fallos")
+                .description("Fallos al publicar eventos de integración")
+                .tag("componente", "incentivos")
+                .register(meterRegistry);
     }
 
     public void publishDonadorActualizado(Donador donador) {
@@ -79,6 +88,7 @@ public class IntegrationEventPublisher {
             rabbitTemplate.convertAndSend(CQRS_EVENTS_QUEUE, event);
             log.info("[INCENTIVOS] Evento publicado tipo={}", type);
         } catch (RuntimeException exception) {
+            publicationFailures.increment();
             log.error("[INCENTIVOS] No se pudo publicar evento tipo={}", type, exception);
         }
     }

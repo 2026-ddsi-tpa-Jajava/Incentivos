@@ -2,7 +2,7 @@ package ar.edu.utn.dds.k3003;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
@@ -54,8 +54,6 @@ public class Fachada implements FachadaIncentivos {
     private final Counter rollbacks;
     private final Timer tiempoProcesamiento;
     private final ReglasMisionProperties reglasMision;
-    private final AtomicLong insigniaSeq = new AtomicLong(1);
-    private final AtomicLong misionSeq = new AtomicLong(1);
 
     private FachadaDonaciones fachadaDonaciones;
     private FachadaDonadoresYEntidades fachadaDonadoresYEntidades;
@@ -106,17 +104,15 @@ public class Fachada implements FachadaIncentivos {
         if (insigniaDTO == null || insigniaDTO.id() != null) {
             throw new IllegalArgumentException("La insignia es invalida");
         }
-        // --- AGREGAR ESTA VALIDACIÓN ---
         if (insigniaDTO.nombre() == null || insigniaDTO.nombre().isBlank()) {
             throw new IllegalArgumentException("El nombre de la insignia no puede estar vacio");
         }
         if (insigniaDTO.descripcion() == null || insigniaDTO.descripcion().isBlank()) {
             throw new IllegalArgumentException("La descripcion de la insignia no puede estar vacia");
         }
-        // -------------------------------
-        String id = "ins-" + insigniaSeq.getAndIncrement();
+        String id = "ins-" + UUID.randomUUID();
         Insignia insignia = new Insignia(id, insigniaDTO.nombre(), insigniaDTO.descripcion());
-        insigniaRepo.save(insignia); // Usamos save() de JPA
+        insigniaRepo.save(insignia);
         return toInsigniaDTO(insignia);
     }
 
@@ -126,7 +122,7 @@ public class Fachada implements FachadaIncentivos {
             throw new IllegalArgumentException("La mision es invalida");
         }
 
-        String id = "mis-" + misionSeq.getAndIncrement();
+        String id = "mis-" + UUID.randomUUID();
         TipoMisionEnum tipo = resolverTipoMision(misionDTO);
         Mision mision = construirMision(id, misionDTO, tipo);
 
@@ -134,7 +130,7 @@ public class Fachada implements FachadaIncentivos {
             mision.setNombre(misionDTO.nombre());
         }
 
-        misionRepo.save(mision); // Usamos save() de JPA
+        misionRepo.save(mision);
         return toMisionDTO(mision);
     }
 
@@ -170,6 +166,9 @@ public class Fachada implements FachadaIncentivos {
         Insignia insignia = insigniaRepo.findById(insigniaDTO.id())
                 .orElseThrow(() -> new EntidadNoEncontradaException("Insignia no encontrada en base de datos"));
 
+        if (donador.tieneInsignia(insignia.getInsigniaID())) {
+            return;
+        }
         donador.agregarInsignia(insignia);
         donadorRepo.save(donador);
         eventPublisher.publishInsigniaAsignada(donador, insignia);
@@ -188,6 +187,7 @@ public class Fachada implements FachadaIncentivos {
         Mision mision = misionRepo.findById(misionDTO.id())
                 .orElseThrow(() -> new EntidadNoEncontradaException("Mision no encontrada en base de datos"));
 
+        validarAsignacionDeMision(donador, mision);
         donador.setMisionActual(mision);
         donadorRepo.save(donador);
         eventPublisher.publishMisionAsignada(donador, mision);
@@ -267,6 +267,12 @@ public class Fachada implements FachadaIncentivos {
 
     private void evaluarMisionEnCurso(Donador donador, Mision misionActual, List<DonacionDTO> donaciones) {
         String donadorID = donador.getDonadorID();
+        if (misionActual.getInsigniaID() != null
+                && donador.tieneInsignia(misionActual.getInsigniaID())) {
+            log.info("[INCENTIVOS] Misión ya completada donador={} mision={}",
+                    donadorID, misionActual.getMisionID());
+            return;
+        }
         List<String> datosEvaluacion = extraerDatosParaMision(misionActual, donaciones);
         boolean misionCumplida = misionActual.estaCumplida(datosEvaluacion, reglasMision);
         log.info("[INCENTIVOS] Evaluación misión donador={} mision={} tipo={} cumplida={}",
@@ -280,11 +286,13 @@ public class Fachada implements FachadaIncentivos {
                 "componente", "incentivos",
                 "tipo_mision", misionActual.getTipo().name()).increment();
 
+        Insignia insigniaAsignada = null;
         if (misionActual.getInsigniaID() != null && !donador.tieneInsignia(misionActual.getInsigniaID())) {
             try {
                 Insignia insignia = insigniaRepo.findById(misionActual.getInsigniaID())
                         .orElseThrow(() -> new EntidadNoEncontradaException(""));
                 donador.agregarInsignia(insignia);
+                insigniaAsignada = insignia;
                 log.info("[INCENTIVOS] Insignia asignada por misión cumplida donador={} insignia={}",
                         donadorID, insignia.getInsigniaID());
             } catch (EntidadNoEncontradaException e) {
@@ -302,6 +310,9 @@ public class Fachada implements FachadaIncentivos {
         }
         sincronizarCategoriaExterna(donadorID, nuevaCategoria);
         donadorRepo.save(donador);
+        if (insigniaAsignada != null) {
+            eventPublisher.publishInsigniaAsignada(donador, insigniaAsignada);
+        }
         if (siguienteMision != null) {
             eventPublisher.publishMisionAsignada(donador, siguienteMision);
         }
@@ -492,6 +503,26 @@ public class Fachada implements FachadaIncentivos {
         return TipoMisionEnum.DONACIONES_EXITOSAS;
     }
 
+    private void validarAsignacionDeMision(Donador donador, Mision mision) {
+        if (mision.getCategoriaInicio() == null || mision.getTipo() == null) {
+            throw new IllegalArgumentException("La mision no tiene una configuracion valida");
+        }
+        if (mision.getInsigniaID() != null && donador.tieneInsignia(mision.getInsigniaID())) {
+            throw new IllegalArgumentException("El donador ya completo esa mision");
+        }
+        if (donador.getMisionActual() != null) {
+            throw new IllegalArgumentException("El donador ya tiene una mision en curso");
+        }
+
+        boolean categoriaValida = mision.getCategoriaInicio().equals(donador.getCategoria());
+        boolean eleccionFinalValida = CategoriaDonadorEnum.TRANSFORMADOR.equals(donador.getCategoria())
+                && (TipoMisionEnum.DONACIONES_ASCENDENTES.equals(mision.getTipo())
+                || TipoMisionEnum.REVOLUCION_DONADORA.equals(mision.getTipo()));
+        if (!categoriaValida && !eleccionFinalValida) {
+            throw new IllegalArgumentException("La mision no corresponde a la categoria actual del donador");
+        }
+    }
+
     private Mision construirMision(String id, MisionDTO misionDTO, TipoMisionEnum tipo) {
         return switch (tipo) {
             case COMPLETITUD -> new MisionCompletitud(id, misionDTO.insigniaID(),
@@ -512,7 +543,5 @@ public class Fachada implements FachadaIncentivos {
         donadorRepo.deleteAll();
         misionRepo.deleteAll();
         insigniaRepo.deleteAll();
-        insigniaSeq.set(1);
-        misionSeq.set(1);
     }
 }
