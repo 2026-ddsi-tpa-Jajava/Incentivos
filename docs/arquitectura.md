@@ -23,7 +23,7 @@ graph TD
     DB[("PostgreSQL")]
     DE["Donadores y Entidades"]
     DON["Donaciones"]
-    RABBIT["RabbitMQ\ncqrs.events.queue"]
+    RABBIT["RabbitMQ\nconsultas.queue"]
     CQRS["Servicio de Consultas\nMongoDB"]
 
     C --> API
@@ -124,7 +124,7 @@ por variables de entorno.
 ## Eventos CQRS
 
 Cuando `INCENTIVOS_EVENTOS_ENABLED=true`, se publican en la cola durable
-`cqrs.events.queue` eventos con:
+`consultas.queue` eventos con:
 
 ```json
 {

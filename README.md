@@ -43,7 +43,7 @@
 
 Cuando `INCENTIVOS_EVENTOS_ENABLED=true`, Incentivos publica snapshots de los
 donadores y eventos de asignación de insignias o misiones en la cola durable
-`cqrs.events.queue`, que es consumida por el Servicio de Consultas
+`consultas.queue`, que es consumida por el Servicio de Consultas
 (`CQRS-MongoDB`). Los eventos tienen `id`, `tipo`, `version`, `ocurridoEn` y
 `payload`, y se publican después de persistir el cambio en la base de escritura.
 

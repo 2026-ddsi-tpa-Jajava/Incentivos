@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class RabbitConfig {
 
-    public static final String CQRS_EVENTS_QUEUE = "cqrs.events.queue";
+    public static final String CQRS_EVENTS_QUEUE = "consultas.queue";
 
     @Bean
     Queue cqrsEventsQueue() {
