@@ -30,5 +30,15 @@ public class MisionRevolucionDonadora extends Mision {
     }
 
     @Override
+    public int[] progreso(List<?> cantidadesDonaciones, ReglasMisionProperties reglas) {
+        int cantidadMinima = reglas.getCantidadMinimaRevolucion();
+        int requeridas = reglas.getDonacionesRevolucion() + 1;
+        long validas = cantidadesDonaciones.stream()
+            .map(Object::toString).map(Integer::parseInt)
+            .filter(c -> c > cantidadMinima).count();
+        return new int[]{(int) Math.min(validas, requeridas), requeridas};
+    }
+
+    @Override
     public TipoMisionEnum getTipo() { return TipoMisionEnum.REVOLUCION_DONADORA; }
 }

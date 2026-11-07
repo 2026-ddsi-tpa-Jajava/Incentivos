@@ -36,5 +36,15 @@ public class MisionDonacionesExitosas extends Mision {
     }
 
     @Override
+    public int[] progreso(List<?> estadosDonaciones, ReglasMisionProperties reglas) {
+        long exitosas = estadosDonaciones.stream()
+                .map(Object::toString)
+                .filter(ESTADO_EXITOSA::equals)
+                .count();
+        int requeridas = reglas.getDonacionesExitosas();
+        return new int[]{(int) Math.min(exitosas, requeridas), requeridas};
+    }
+
+    @Override
     public TipoMisionEnum getTipo() { return TipoMisionEnum.DONACIONES_EXITOSAS; }
 }

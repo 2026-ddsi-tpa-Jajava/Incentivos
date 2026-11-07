@@ -275,6 +275,8 @@ public class Fachada implements FachadaIncentivos {
         }
         List<String> datosEvaluacion = extraerDatosParaMision(misionActual, donaciones);
         boolean misionCumplida = misionActual.estaCumplida(datosEvaluacion, reglasMision);
+        int[] progreso = misionActual.progreso(datosEvaluacion, reglasMision);
+        eventPublisher.publishMisionProgreso(donador, misionActual, progreso[0], progreso[1]);
         log.info("[INCENTIVOS] Evaluación misión donador={} mision={} tipo={} cumplida={}",
                 donadorID, misionActual.getMisionID(), misionActual.getTipo(), misionCumplida);
 

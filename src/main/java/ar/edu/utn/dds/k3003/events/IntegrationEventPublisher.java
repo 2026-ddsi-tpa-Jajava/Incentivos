@@ -29,11 +29,12 @@ public class IntegrationEventPublisher {
     private final RabbitTemplate rabbitTemplate;
     private final boolean enabled;
     private final Counter publicationFailures;
+    private final Map<String, String> ultimoProgreso = new java.util.concurrent.ConcurrentHashMap<>();
 
     public IntegrationEventPublisher(
             RabbitTemplate rabbitTemplate,
             MeterRegistry meterRegistry,
-            @Value("${incentivos.eventos.enabled:false}") boolean enabled) {
+            @Value("${incentivos.eventos.enabled:true}") boolean enabled) {
         this.rabbitTemplate = rabbitTemplate;
         this.enabled = enabled;
         this.publicationFailures = Counter.builder("incentivos.eventos.publicacion.fallos")
@@ -50,9 +51,7 @@ public class IntegrationEventPublisher {
         payload.put("insignias", donador.getInsignias().stream().map(this::toInsignia).toList());
         payload.put("historialCategorias",
                 donador.getHistorialCategorias().stream().map(this::toCambioCategoria).toList());
-        if (donador.getMisionActual() != null) {
-            payload.put("misionActual", toMision(donador.getMisionActual()));
-        }
+        payload.put("misionActual", donador.getMisionActual() == null ? null : toMision(donador.getMisionActual()));
         publish("DONADOR_ACTUALIZADO", payload);
     }
 
@@ -71,6 +70,22 @@ public class IntegrationEventPublisher {
         payload.put("id", donador.getDonadorID() + ":" + mision.getMisionID());
         payload.put("donadorID", donador.getDonadorID());
         publish("MISION_ASIGNADA", payload);
+    }
+
+    public void publishMisionProgreso(Donador donador, Mision mision, int actual, int requerido) {
+        String id = donador.getDonadorID() + ":" + mision.getMisionID();
+        String progreso = actual + "/" + requerido;
+        if (progreso.equals(ultimoProgreso.put(id, progreso))) {
+            return;
+        }
+        Map<String, Object> payload = new HashMap<>(toMision(mision));
+        payload.put("id", id);
+        payload.put("donadorID", donador.getDonadorID());
+        payload.put("misionID", mision.getMisionID());
+        payload.put("progresoActual", actual);
+        payload.put("progresoRequerido", requerido);
+        payload.put("porcentaje", requerido <= 0 ? 0 : Math.min(100, actual * 100 / requerido));
+        publish("MISION_PROCESADA", payload);
     }
 
     private void publish(String type, Map<String, Object> payload) {

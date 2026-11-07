@@ -32,7 +32,7 @@
 - `DB_DIALECT`
 - `DD_API_KEY`
 - `INCENTIVOS_PROCESAMIENTO_INTERVALO_MS`
-- `INCENTIVOS_EVENTOS_ENABLED` (activar con `true` para publicar eventos CQRS)
+- `INCENTIVOS_EVENTOS_ENABLED` (por defecto `true`; usar `false` para no publicar eventos CQRS)
 - `SPRING_RABBITMQ_HOST`
 - `SPRING_RABBITMQ_PORT`
 - `SPRING_RABBITMQ_USERNAME`

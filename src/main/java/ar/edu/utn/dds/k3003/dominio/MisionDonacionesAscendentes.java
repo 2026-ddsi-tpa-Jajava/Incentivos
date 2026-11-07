@@ -34,5 +34,18 @@ public class MisionDonacionesAscendentes extends Mision {
     }
 
     @Override
+    public int[] progreso(List<?> cantidadesDonaciones, ReglasMisionProperties reglas) {
+        int requeridas = reglas.getDonacionesAscendentes();
+        List<Integer> cantidades = cantidadesDonaciones.stream()
+            .map(Object::toString).map(Integer::parseInt).toList();
+        int racha = cantidades.isEmpty() ? 0 : 1;
+        for (int i = cantidades.size() - 1; i > 0; i--) {
+            if (cantidades.get(i) > cantidades.get(i - 1)) racha++;
+            else break;
+        }
+        return new int[]{Math.min(racha, requeridas), requeridas};
+    }
+
+    @Override
     public TipoMisionEnum getTipo() { return TipoMisionEnum.DONACIONES_ASCENDENTES; }
 }

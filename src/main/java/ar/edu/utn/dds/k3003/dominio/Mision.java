@@ -49,6 +49,11 @@ public abstract class Mision {
     public abstract boolean estaCumplida(List<?> donaciones, ReglasMisionProperties reglas);
     public abstract TipoMisionEnum getTipo();
 
+    /** Devuelve {progresoActual, progresoRequerido} para la mision, segun los datos del donador. */
+    public int[] progreso(List<?> datos, ReglasMisionProperties reglas) {
+        return new int[]{estaCumplida(datos, reglas) ? 1 : 0, 1};
+    }
+
     public String getMisionID() { return misionID; }
     public String getNombre() { return nombre; }
     public String getInsigniaID() { return insigniaID; }

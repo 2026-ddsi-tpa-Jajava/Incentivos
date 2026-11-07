@@ -35,5 +35,12 @@ public class MisionCompletitud extends Mision {
     }
 
     @Override
+    public int[] progreso(List<?> categoriasDonadas, ReglasMisionProperties reglas) {
+        int distintas = categoriasDonadas.stream().map(Object::toString).collect(Collectors.toSet()).size();
+        int requeridas = reglas.getCategoriasCompletitud();
+        return new int[]{Math.min(distintas, requeridas), requeridas};
+    }
+
+    @Override
     public TipoMisionEnum getTipo() { return TipoMisionEnum.COMPLETITUD; }
 }
